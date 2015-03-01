@@ -339,7 +339,7 @@ namespace Gadgetron {
    * @returns New array of the specified size, containing the original input array in the center and val outside.
    */
   template<class T, unsigned int D> void
-  pad(const typename uint64d<D>::Type& size, hoNDArray<T> *in, hoNDArray<T>* out, T val = T(0))
+  pad(const typename uint64d<D>::Type& size, hoNDArray<T> *in, hoNDArray<T>* out, bool preset_out_with_zeros = true, T val = T(0))
   {
       if (in == 0x0){
           throw std::runtime_error("pad: 0x0 array provided");;
@@ -355,49 +355,88 @@ namespace Gadgetron {
           throw std::runtime_error(ss.str());;
       }
 
+      unsigned int d;
+
       std::vector<size_t> dims = to_std_vector(size);
-      for (unsigned int d = D; d<in->get_number_of_dimensions(); d++){
+      for (d = D; d<in->get_number_of_dimensions(); d++){
           dims.push_back(in->get_size(d));
       }
 
-      out->create(dims);
+      if (!out->dimensions_equal(&dims)){
+          out->create(dims);
+      }
+
+      if (in->dimensions_equal(&dims)){
+          memcpy(out->begin(), in->begin(), in->get_number_of_bytes());
+          return;
+      }
+
+      if (preset_out_with_zeros){
+          Gadgetron::clear(out);
+      }
 
       typename uint64d<D>::Type matrix_size_in = from_std_vector<size_t, D>(*in->get_dimensions());
       typename uint64d<D>::Type matrix_size_out = from_std_vector<size_t, D>(*out->get_dimensions());
-
-      size_t num_batches = 1;
-      for (unsigned int d = D; d<in->get_number_of_dimensions(); d++){
-          num_batches *= in->get_size(d);
-      }
 
       if (weak_greater(matrix_size_in, matrix_size_out)){
           throw std::runtime_error("pad: size mismatch, cannot expand");
       }
 
-      const size_t num_elements_in = prod(matrix_size_in);
-      const size_t num_elements_out = prod(matrix_size_out);
-      const typename uint64d<D>::Type offset = (matrix_size_out - matrix_size_in) >> 1;
+      typename uint64d<D>::Type offset(D);
+      for (d = 0; d<D; d++){
+          offset[d] = matrix_size_out[d]/2 - matrix_size_in[d]/2;
+      }
+
+      size_t len = in->get_size(0);
+      size_t num = in->get_number_of_elements() / len;
+
+      long long k;
 
       T *in_ptr = in->get_data_ptr();
       T *out_ptr = out->get_data_ptr();
 
-      for (size_t frame_offset = 0; frame_offset<num_batches; frame_offset++){
-#ifdef USE_OMP
-#pragma omp parallel for
-#endif
-          for (long long idx = 0; idx<(long long)num_elements_out; idx++){
-              const typename uint64d<D>::Type co_out = idx_to_co<D>(idx, matrix_size_out);
-              T _out;
-              bool inside = (co_out >= offset) && (co_out<(matrix_size_in + offset));
+#pragma omp parallel default(none) private(k, d) shared(in_ptr, out_ptr, num, D, len, in, out, offset)
+      {
+          std::vector<size_t> ind;
 
-              if (inside)
-                  _out = in_ptr[co_to_idx<D>(co_out - offset, matrix_size_in) + frame_offset*num_elements_in];
-              else{
-                  _out = val;
+#pragma omp for 
+          for (k = 0; k < (long long)num; k++){
+              ind = in->calculate_index(k*len);
+              for (d = 0; d < D; d++){
+                  ind[d] += offset[d];
               }
-              out_ptr[idx + frame_offset*num_elements_out] = _out;
+
+              T* out_ptr_curr = out_ptr + out->calculate_offset(ind);
+              memcpy(out_ptr_curr, in_ptr + k*len, sizeof(T)*len);
           }
       }
+  }
+
+  template<class T> void
+  pad(size_t x, hoNDArray<T> *in, hoNDArray<T>* out, bool preset_out_with_zeros = true, T val = T(0))
+  {
+      typename uint64d<1>::Type padSize(1);
+      padSize[0] = x;
+      pad<T, 1>(padSize, in, out, preset_out_with_zeros, val);
+  }
+
+  template<class T> void
+  pad(size_t x, size_t y, hoNDArray<T> *in, hoNDArray<T>* out, bool preset_out_with_zeros = true, T val = T(0))
+  {
+      typename uint64d<2>::Type padSize(2);
+      padSize[0] = x;
+      padSize[1] = y;
+      pad<T, 2>(padSize, in, out, preset_out_with_zeros, val);
+  }
+
+  template<class T> void
+  pad(size_t x, size_t y, size_t z, hoNDArray<T> *in, hoNDArray<T>* out, bool preset_out_with_zeros = true, T val = T(0))
+  {
+      typename uint64d<3>::Type padSize(3);
+      padSize[0] = x;
+      padSize[1] = y;
+      padSize[2] = z;
+      pad<T, 3>(padSize, in, out, preset_out_with_zeros, val);
   }
 
   template<class T, unsigned int D> boost::shared_ptr< hoNDArray<T> >
@@ -405,7 +444,7 @@ namespace Gadgetron {
   {
     std::vector<size_t> dims = to_std_vector(size);
     boost::shared_ptr< hoNDArray<T> > out(new hoNDArray<T>(&dims));
-    pad<T,D>(size, in, out.get(), val);
+    pad<T,D>(size, in, out.get(), true, val);
     return out;
   }
 

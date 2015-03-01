@@ -379,9 +379,9 @@ void grappa2d_image_domain_kernel(const ho4DArray<T>& convKer, size_t RO, size_t
 {
     try
     {
-        ho4DArray<T> convKerScaled(convKer);
+        hoNDArray<T> convKerScaled(convKer);
         Gadgetron::scal((typename realType<T>::Type)(std::sqrt((double)(RO*E1))), convKerScaled);
-        Gadgetron::zeropad2D(convKerScaled, RO, E1, kIm);
+        Gadgetron::pad(RO, E1, &convKerScaled, &kIm);
         Gadgetron::hoNDFFT<typename realType<T>::Type>::instance()->ifft2c(kIm);
     }
     catch(...)
