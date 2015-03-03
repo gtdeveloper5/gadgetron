@@ -328,7 +328,7 @@ namespace Gadgetron {
       T *in_ptr = in->get_data_ptr();
       T *out_ptr = out->get_data_ptr();
 
-      #pragma omp parallel default(none) private(k) shared(in_ptr, out_ptr, num, D, len, in, out, crop_offset)
+      #pragma omp parallel default(none) private(k) shared(in_ptr, out_ptr, num, len, in, out, crop_offset)
       {
           std::vector<size_t> ind;
 
@@ -451,12 +451,21 @@ namespace Gadgetron {
           return;
       }
 
+      T *in_ptr = in->get_data_ptr();
+      T *out_ptr = out->get_data_ptr();
+
       if (preset_out_with_val){
           if (val == T(0)){
-              Gadgetron::clear(out);
+              memset(out_ptr, 0, out->get_number_of_bytes());
           }
           else{
-              Gadgetron::fill(out, val);
+                size_t N = out->get_number_of_elements();
+                long long n;
+                #pragma omp parallel for default(none) private(n) shared(N, out_ptr, val)
+                for (n = 0; n<(long long)N; n++)
+                {
+                    out_ptr[n] = val;
+                }
           }
       }
 
@@ -477,10 +486,7 @@ namespace Gadgetron {
 
       long long k;
 
-      T *in_ptr = in->get_data_ptr();
-      T *out_ptr = out->get_data_ptr();
-
-#pragma omp parallel default(none) private(k, d) shared(in_ptr, out_ptr, num, D, len, in, out, offset)
+#pragma omp parallel default(none) private(k, d) shared(in_ptr, out_ptr, num, len, in, out, offset)
       {
           std::vector<size_t> ind;
 
