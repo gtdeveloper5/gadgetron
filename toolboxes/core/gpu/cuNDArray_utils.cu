@@ -346,6 +346,66 @@ namespace Gadgetron {
     CHECK_FOR_CUDA_ERROR();
   }
 
+  template<class T> void
+  crop(size_t x, cuNDArray<T> *in, cuNDArray<T> *out)
+  {
+    typename uint64d<1>::Type crop_size;
+    crop_size[0] = x;
+
+    typename uint64d<1>::Type crop_offset;
+    crop_offset[0] = in->get_size(0) / 2 - crop_size[0] / 2;
+    
+    std::vector<size_t> dims = to_std_vector(crop_size);
+    for( unsigned int d=1; d<in->get_number_of_dimensions(); d++ ){
+      dims.push_back(in->get_size(d));
+    }
+    out->create(&dims);
+
+    crop<T,1>(crop_offset, in, out);
+  }
+
+  template<class T> void
+  crop(size_t x, size_t y, cuNDArray<T> *in, cuNDArray<T> *out)
+  {
+    typename uint64d<2>::Type crop_size;
+    crop_size[0] = x;
+    crop_size[1] = y;
+
+    typename uint64d<2>::Type crop_offset;
+    crop_offset[0] = in->get_size(0) / 2 - crop_size[0] / 2;
+    crop_offset[1] = in->get_size(1) / 2 - crop_size[1] / 2;
+    
+    std::vector<size_t> dims = to_std_vector(crop_size);
+    for( unsigned int d=2; d<in->get_number_of_dimensions(); d++ ){
+      dims.push_back(in->get_size(d));
+    }
+    out->create(&dims);
+
+    crop<T,2>(crop_offset, in, out);
+  }
+
+  template<class T> void
+  crop(size_t x, size_t y, size_t z, cuNDArray<T> *in, cuNDArray<T> *out)
+  {
+    typename uint64d<3>::Type crop_size;
+    crop_size[0] = x;
+    crop_size[1] = y;
+    crop_size[2] = z;
+
+    typename uint64d<3>::Type crop_offset;
+    crop_offset[0] = in->get_size(0) / 2 - crop_size[0] / 2;
+    crop_offset[1] = in->get_size(1) / 2 - crop_size[1] / 2;
+    crop_offset[2] = in->get_size(2) / 2 - crop_size[2] / 2;
+    
+    std::vector<size_t> dims = to_std_vector(crop_size);
+    for( unsigned int d=3; d<in->get_number_of_dimensions(); d++ ){
+      dims.push_back(in->get_size(d));
+    }
+    out->create(&dims);
+
+    crop<T,3>(crop_offset, in, out);
+  }
+
   template<class T, unsigned int D> boost::shared_ptr< cuNDArray<T> > 
   crop( typename uint64d<D>::Type offset, typename uint64d<D>::Type size, cuNDArray<T> *in )
   {
@@ -430,6 +490,33 @@ namespace Gadgetron {
         in->get_data_ptr(), out->get_data_ptr(), number_of_batches, prod(matrix_size_out), val );
 
     CHECK_FOR_CUDA_ERROR();
+  }
+
+  template<class T> void
+  pad(size_t x, cuNDArray<T> *in, cuNDArray<T>* out, T val)
+  {
+      typename uint64d<1>::Type padSize(1);
+      padSize[0] = x;
+      pad<T, 1>(padSize, in, out, val);
+  }
+
+  template<class T> void
+  pad(size_t x, size_t y, cuNDArray<T> *in, cuNDArray<T>* out, T val)
+  {
+      typename uint64d<2>::Type padSize(2);
+      padSize[0] = x;
+      padSize[1] = y;
+      pad<T, 2>(padSize, in, out, val);
+  }
+
+  template<class T> void
+  pad(size_t x, size_t y, size_t z, cuNDArray<T> *in, cuNDArray<T>* out, T val)
+  {
+      typename uint64d<3>::Type padSize(3);
+      padSize[0] = x;
+      padSize[1] = y;
+      padSize[2] = z;
+      pad<T, 3>(padSize, in, out, val);
   }
 
   template<class T, unsigned int D> boost::shared_ptr< cuNDArray<T> >
