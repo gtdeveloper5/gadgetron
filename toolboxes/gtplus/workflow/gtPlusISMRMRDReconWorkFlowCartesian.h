@@ -364,6 +364,7 @@ convertToReconSpace2D(hoNDArray<T>& input_, hoNDArray<T>& output_, bool isKSpace
             {
                 float spacingE1 = reconFOV_E1_/reconSizeE1_;
                 encodingE1 = (size_t)std::floor(encodingFOV_E1_/spacingE1+0.5);
+                if (encodingE1 % 2 == 1) encodingE1++;
             }
 
             hoNDArray<T>* pSrc = &input_;
@@ -499,6 +500,7 @@ convertToReconSpace3D(hoNDArray<T>& input_, hoNDArray<T>& output_, bool isKSpace
             {
                 float spacingE1 = reconFOV_E1_/reconSizeE1_;
                 encodingE1 = (size_t)std::floor(encodingFOV_E1_/spacingE1+0.5);
+                if (encodingE1 % 2 == 1) encodingE1++;
             }
 
             size_t encodingE2 = reconSizeE2_;
@@ -506,6 +508,7 @@ convertToReconSpace3D(hoNDArray<T>& input_, hoNDArray<T>& output_, bool isKSpace
             {
                 float spacingE2 = reconFOV_E2_/reconSizeE2_;
                 encodingE2 = (size_t)std::floor(encodingFOV_E2_/spacingE2+0.5);
+                if (encodingE2 % 2 == 1) encodingE2++;
             }
 
             hoNDArray<T>* pSrc = &input_;
