@@ -2403,14 +2403,14 @@ bool gtPlusReconWorker2DT<T>::performPartialFourierFengHuangRecon(gtPlusReconWor
 
         if ( !debugFolder_.empty() ) { gt_exporter_.exportArrayComplex(kspace, debugFolder_+"kspace_before_FengHuang"); }
 
-        size_t startRO(0), endRO(RO-1);
+        long long startRO(0), endRO(RO-1);
         if ( workOrder2DT.start_RO_>=0 && workOrder2DT.end_RO_<RO )
         {
             startRO = workOrder2DT.start_RO_;
             endRO = workOrder2DT.end_RO_;
         }
 
-        size_t startE1(0), endE1(E1-1);
+        long long startE1(0), endE1(E1 - 1);
         if ( workOrder2DT.start_E1_>=0 && workOrder2DT.end_E1_<E1 )
         {
             startE1 = workOrder2DT.start_E1_;
@@ -2490,10 +2490,10 @@ bool gtPlusReconWorker2DT<T>::performPartialFourierFengHuangRecon(gtPlusReconWor
             if ( startRO > 0 )
             {
                 startRO += tb;
-                if ( startRO > RO ) startRO = 0;
+                if ( startRO > (long long)RO ) startRO = 0;
             }
 
-            if ( endRO < RO-1 )
+            if ( endRO < (long long)(RO-1) )
             {
                 endRO -= tb;
             }
@@ -2507,10 +2507,10 @@ bool gtPlusReconWorker2DT<T>::performPartialFourierFengHuangRecon(gtPlusReconWor
             if ( startE1 > 0 )
             {
                 startE1 += tb;
-                if ( startE1 > E1 ) startE1 = 0;
+                if ( startE1 > (long long)E1 ) startE1 = 0;
             }
 
-            if ( endE1 < E1-1 )
+            if (endE1 < (long long)(E1 - 1))
             {
                 endE1 -= tb;
             }

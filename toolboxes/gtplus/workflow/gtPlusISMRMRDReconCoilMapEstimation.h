@@ -76,7 +76,8 @@ bool gtPlusISMRMRDReconCoilMapEstimation<T>::coilMap2DSPIRIT(const hoNDArray<T>&
         coilMap.create(RO, E1, CHA, 2);
         eigD.create(RO, E1, 2);
 
-        long long ro, e1, scha, dcha;
+        long long e1;
+        size_t ro, scha, dcha;
 
         #pragma omp parallel default(none) private(ro, e1, scha, dcha) shared(RO, E1, CHA, pkIm, coilMap, eigD)
         {
@@ -86,7 +87,7 @@ bool gtPlusISMRMRDReconCoilMapEstimation<T>::coilMap2DSPIRIT(const hoNDArray<T>&
             hoMatrix<value_type> eigenValue;
 
             #pragma omp for 
-            for ( e1=0; e1<E1; e1++ )
+            for ( e1=0; e1<(long long)E1; e1++ )
             {
                 for ( ro=0; ro<RO; ro++ )
                 {

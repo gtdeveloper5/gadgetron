@@ -183,7 +183,7 @@ namespace Gadgetron {
         // memcpy can be used
 
         size_t nDim = in->get_number_of_dimensions();
-        size_t num_memcpy = in->get_number_of_elements() / stride;
+        long long num_memcpy = (long long)(in->get_number_of_elements() / stride);
 
         if (num_dim_memcpy == nDim - 1){
             memcpy(out->begin(), in->begin(), in->get_number_of_bytes());

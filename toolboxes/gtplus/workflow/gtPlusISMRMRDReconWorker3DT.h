@@ -2102,21 +2102,21 @@ bool gtPlusReconWorker3DT<T>::performPartialFourierFengHuangRecon(WorkOrderType&
 
         if ( !debugFolder_.empty() ) { gt_exporter_.exportArrayComplex(kspace, debugFolder_+"kspace_before_FengHuang"); }
 
-        size_t startRO(0), endRO(RO-1);
+        long long startRO(0), endRO(RO-1);
         if ( workOrder3DT.start_RO_>=0 && workOrder3DT.end_RO_<RO )
         {
             startRO = workOrder3DT.start_RO_;
             endRO = workOrder3DT.end_RO_;
         }
 
-        size_t startE1(0), endE1(E1-1);
+        long long startE1(0), endE1(E1 - 1);
         if ( workOrder3DT.start_E1_>=0 && workOrder3DT.end_E1_<E1 )
         {
             startE1 = workOrder3DT.start_E1_;
             endE1 = workOrder3DT.end_E1_;
         }
 
-        size_t startE2(0), endE2(E2-1);
+        long long startE2(0), endE2(E2 - 1);
         if ( workOrder3DT.start_E2_>=0 && workOrder3DT.end_E2_<E2 )
         {
             startE2 = workOrder3DT.start_E2_;
@@ -2201,10 +2201,10 @@ bool gtPlusReconWorker3DT<T>::performPartialFourierFengHuangRecon(WorkOrderType&
             if ( startRO > 0 )
             {
                 startRO += tb;
-                if ( startRO > RO ) startRO = 0;
+                if (startRO > (long long)RO) startRO = 0;
             }
 
-            if ( endRO < RO-1 )
+            if (endRO < (long long)(RO - 1))
             {
                 endRO -= tb;
             }
@@ -2218,10 +2218,10 @@ bool gtPlusReconWorker3DT<T>::performPartialFourierFengHuangRecon(WorkOrderType&
             if ( startE1 > 0 )
             {
                 startE1 += tb;
-                if ( startE1 > E1 ) startE1 = 0;
+                if (startE1 > (long long)E1) startE1 = 0;
             }
 
-            if ( endE1 < E1-1 )
+            if (endE1 < (long long)(E1 - 1))
             {
                 endE1 -= tb;
             }
@@ -2235,10 +2235,10 @@ bool gtPlusReconWorker3DT<T>::performPartialFourierFengHuangRecon(WorkOrderType&
             if ( startE2 > 0 )
             {
                 startE2 += tb;
-                if ( startE2 > E2 ) startE2 = 0;
+                if (startE2 > (long long)E2) startE2 = 0;
             }
 
-            if ( endE2 < E2-1 )
+            if (endE2 < (long long)(E2 - 1))
             {
                 endE2 -= tb;
             }

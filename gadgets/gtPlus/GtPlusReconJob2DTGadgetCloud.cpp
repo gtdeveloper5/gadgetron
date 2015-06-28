@@ -666,8 +666,8 @@ generateKSpaceFilter(WorkOrderType& workOrder)
             if ( (workOrder.CalibMode_ == ISMRMRD_interleaved) || (workOrder.CalibMode_ == ISMRMRD_embedded) )
             {
                 // use the image data sample range
-                startRO = workOrder.start_RO_; 
-                endRO = workOrder.end_RO_; 
+                if (workOrder.start_RO_ >= 0) startRO = workOrder.start_RO_;
+                if (workOrder.end_RO_ >= 0) endRO = workOrder.end_RO_;
             }
 
             if ( RO_ref > 1 && filterRO_ref_type_ != ISMRMRD_FILTER_NONE )
