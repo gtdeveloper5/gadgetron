@@ -7,11 +7,16 @@ RUN apt-get update --quiet && \
     hdf5-tools liblapack-dev libxml2-dev libfreetype6-dev pkg-config \
     libxslt-dev libarmadillo-dev libace-dev gcc-multilib  \
     libgtest-dev liblapack-dev libatlas-base-dev libatlas-dev libplplot-dev \
+    software-properties-common python-dev python-twisted python-psutil python-numpy python-libxml2 \
     supervisor
+
+RUN add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted multiverse universe"  
+RUN apt-get update --quiet
+RUN apt-get install libhdf5-serial-dev hdf5-tools -y 
 
 #Python stuff
 RUN pip install Cython
-RUN pip install numpy pyxb h5py psutil Twisted lxml matplotlib  
+RUN pip install numpy pyxb h5py lxml matplotlib  
 
 #OpenBLAS with OpenMP
 RUN cd /opt && \
