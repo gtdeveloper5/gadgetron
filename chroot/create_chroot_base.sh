@@ -26,8 +26,10 @@ else
         debootstrap --variant=buildd --arch amd64 trusty ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron http://gb.archive.ubuntu.com/ubuntu/
 
         # install python libraries
-        chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron apt-get install --no-install-recommends --no-install-suggests --yes wget build-essential emacs python-pip libhdf5-serial-dev cmake git-core libboost-all-dev libfftw3-dev h5utils hdf5-tools liblapack-dev libxml2-dev libfreetype6-dev pkg-config libxslt-dev libarmadillo-dev libace-dev gcc-multilib libgtest-dev liblapack-dev libatlas-base-dev libatlas-dev libplplot-dev supervisor
         chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron apt-get install software-properties-common python-libxml2 -y
+        chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted multiverse universe"  
+        chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron apt-get update
+        chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron apt-get install --no-install-recommends --no-install-suggests --yes wget build-essential emacs python-pip libhdf5-serial-dev cmake git-core libboost-all-dev libfftw3-dev h5utils hdf5-tools liblapack-dev libxml2-dev libfreetype6-dev pkg-config libxslt-dev libarmadillo-dev libace-dev gcc-multilib libgtest-dev liblapack-dev libatlas-base-dev libatlas-dev libplplot-dev supervisor
         chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron pip install Cython
         chroot ${CHROOT_GADGETRON_BINARY_DIR}/chroot/chroot-root/gadgetron pip install numpy pyxb h5py psutil Twisted lxml matplotlib  
 
