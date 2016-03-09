@@ -348,13 +348,49 @@ convertToReconSpace2D(hoNDArray<T>& input_, hoNDArray<T>& output_, bool isKSpace
         // if encoded FOV are the same as recon FOV
         if ( (std::abs(encodingFOV_RO_/2 - reconFOV_RO_)<0.1) && (std::abs(encodingFOV_E1_-reconFOV_E1_)<0.1) )
         {
+            hoNDArray<T> buffer2D;
+
             if ( isKSpace )
             {
-                GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2DOnKSpace(input_, reconSizeRO_, reconSizeE1_, output_));
+                if (reconSizeE1_ >= E1)
+                {
+                    GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2DOnKSpace(input_, RO, reconSizeE1_, buffer2D));
+                }
+                else
+                {
+                    hoNDArray<T> bufferIm2D;
+                    Gadgetron::hoNDFFT<typename realType<T>::Type>::instance()->ifft2c(input_, bufferIm2D);
+                    GADGET_CHECK_EXCEPTION_RETURN_FALSE(Gadgetron::crop(RO, reconSizeE1_, &bufferIm2D, &buffer2D));
+                }
+
+                if (reconSizeRO_ >= RO)
+                {
+                    GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2D(buffer2D, reconSizeRO_, reconSizeE1_, output_));
+                }
+                else
+                {
+                    GADGET_CHECK_EXCEPTION_RETURN_FALSE(Gadgetron::crop(reconSizeRO_, reconSizeE1_, &buffer2D, &output_));
+                }
             }
             else
             {
-                GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2D(input_, reconSizeRO_, reconSizeE1_, output_));
+                if (reconSizeE1_ >= E1)
+                {
+                    GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2D(input_, RO, reconSizeE1_, buffer2D));
+                }
+                else
+                {
+                    GADGET_CHECK_EXCEPTION_RETURN_FALSE(Gadgetron::crop(RO, reconSizeE1_, &input_, &buffer2D));
+                }
+
+                if(reconSizeRO_>=RO)
+                {
+                    GADGET_CHECK_RETURN_FALSE(gtPlusISMRMRDReconUtilComplex<T>().zpadResize2D(buffer2D, reconSizeRO_, reconSizeE1_, output_));
+                }
+                else
+                {
+                    GADGET_CHECK_EXCEPTION_RETURN_FALSE(Gadgetron::crop(reconSizeRO_, reconSizeE1_, &buffer2D, &output_));
+                }
             }
         }
         else if (encodingFOV_E1_>=reconFOV_E1_)
