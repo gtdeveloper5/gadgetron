@@ -195,7 +195,7 @@ namespace Gadgetron {
                 end_E2 = std::get<1>(t);
             }
 
-            // crop the ref_calib, along RO, E1 and E2
+            // crop the ref_calib, along RO, E1 and E2 for seperate or embedded mode
             vector_td<size_t, 3> crop_offset;
             crop_offset[0] = sampling_limits[0].min_;
             crop_offset[1] = start_E1;
@@ -206,37 +206,32 @@ namespace Gadgetron {
             crop_size[1] = end_E1 - start_E1 + 1;
             crop_size[2] = end_E2 - start_E2 + 1;
 
-            if(crop_size[0]> (ref_calib.get_size(0)-crop_offset[0]))
+            if (crop_size[0]> (ref_calib.get_size(0) - crop_offset[0]))
             {
                 crop_size[0] = ref_calib.get_size(0) - crop_offset[0];
             }
 
             Gadgetron::crop(crop_offset, crop_size, &ref_calib, &ref_recon_buf);
             ref_calib = ref_recon_buf;
+
             // step 3, update the sampling limits
             sampling_limits[0].center_ = (uint16_t)(RO/2);
+
+            sampling_limits[1].min_ = 0;
+            sampling_limits[1].max_ = (uint16_t)(end_E1 - start_E1);
+
+            sampling_limits[2].min_ = 0;
+            sampling_limits[2].max_ = (uint16_t)(end_E2 - start_E2);
 
             if ( (calib_mode_[e] == Gadgetron::ISMRMRD_interleaved) || (calib_mode_[e] == Gadgetron::ISMRMRD_noacceleration) )
             {
                 // need to keep the ref kspace center information
-                sampling_limits[1].min_ = (uint16_t)(start_E1);
-                sampling_limits[1].max_ = (uint16_t)(end_E1);
-
-                sampling_limits[2].min_ = (uint16_t)(start_E2);
-                sampling_limits[2].max_ = (uint16_t)(end_E2);
-
-                sampling_limits[1].center_ = (uint16_t)(E1 / 2);
-                sampling_limits[2].center_ = (uint16_t)(E2 / 2);
+                sampling_limits[1].center_ = (uint16_t)(sampling_limits[1].center_ - start_E1);
+                sampling_limits[2].center_ = (uint16_t)(sampling_limits[2].center_ - start_E2);
             }
             else
             {
                 // sepearate, embedded mode, the ref center is the kspace center
-                sampling_limits[1].min_ = 0;
-                sampling_limits[1].max_ = (uint16_t)(end_E1 - start_E1);
-
-                sampling_limits[2].min_ = 0;
-                sampling_limits[2].max_ = (uint16_t)(end_E2 - start_E2);
-
                 sampling_limits[1].center_ = (sampling_limits[1].max_ + 1) / 2;
                 sampling_limits[2].center_ = (sampling_limits[2].max_ + 1) / 2;
             }

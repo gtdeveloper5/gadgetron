@@ -1030,6 +1030,7 @@ postProcessing()
     {
         if ( !debugFolder_.empty() ) { gt_exporter_.exportArrayComplex(res_, debugFolder_+"complexIm_afterRecon"); }
         GADGET_CHECK_RETURN_FALSE(this->postProcessing(res_, true, true));
+        if (!debugFolder_.empty()) { gt_exporter_.exportArrayComplex(res_, debugFolder_ + "complexIm_afterRecon_afterPostProcessing"); }
 
         if ( this->res_second_.get_number_of_elements() > 0 )
         {

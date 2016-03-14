@@ -60,6 +60,7 @@ namespace Gadgetron
 	instance_ = new CloudBus(relay_port_, relay_inet_addr_);
 	instance_->open();
       }
+    instance_->update_node_info();
     return instance_;
   }
 
@@ -282,7 +283,7 @@ namespace Gadgetron
     listener.get_local_addr (local_addr);
     node_info_.address = std::string(local_addr.get_host_name());
     node_info_.active_reconstructions = 0;
-    auto t = std::chrono::system_clock::now();
+    auto t = std::chrono::system_clock::now() - std::chrono::seconds(5*60);
     node_info_.last_recon = std::chrono::system_clock::to_time_t(t);
   }
 

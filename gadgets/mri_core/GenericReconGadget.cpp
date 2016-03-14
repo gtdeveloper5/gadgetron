@@ -113,15 +113,15 @@ namespace Gadgetron {
 
         // ---------------------------------------------------------------------------------------------------------
 
-        //if (!debug_folder.value().empty())
-        //{
-        //    Gadgetron::get_debug_folder_path(debug_folder.value(), debug_folder_full_path_);
-        //    GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is " << debug_folder_full_path_);
-        //}
-        //else
-        //{
-        //    GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is not set ... ");
-        //}
+        if (!debug_folder.value().empty())
+        {
+            Gadgetron::get_debug_folder_path(debug_folder.value(), debug_folder_full_path_);
+            GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is " << debug_folder_full_path_);
+        }
+        else
+        {
+            GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is not set ... ");
+        }
 
         return GADGET_OK;
     }
@@ -268,8 +268,14 @@ namespace Gadgetron {
 
                             // set the skip processing flag, so gfactor map will not be processed during e.g. partial fourier handling or kspace filter gadgets
                             res.meta_[offset].set(GADGETRON_SKIP_PROCESSING_AFTER_RECON, (long)1);
-                            // set the flag to use dedicated scaling factor
-                            res.meta_[offset].set(GADGETRON_USE_DEDICATED_SCALING_FACTOR, (long)1);
+                        }
+                        else if (data_role == GADGETRON_IMAGE_SNR_MAP)
+                        {
+                            res.headers_(n, s, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
+
+                            res.meta_[offset].append(GADGETRON_IMAGECOMMENT, GADGETRON_IMAGE_SNR_MAP);
+                            res.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_SNR_MAP);
+                            res.meta_[offset].set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_SNR_MAP);
                         }
 
                         if (verbose.value())
@@ -304,99 +310,6 @@ namespace Gadgetron {
 
     // ----------------------------------------------------------------------------------------
 
-    void GenericReconGadget::prepare_squared_pixel_recon(IsmrmrdReconBit& recon_bit, size_t encoding)
-    {
-        try
-        {
-            size_t RO = recon_bit.data_.data_.get_size(0);
-            size_t E1 = recon_bit.data_.data_.get_size(1);
-            size_t E2 = recon_bit.data_.data_.get_size(2);
-
-            size_t N = recon_bit.data_.data_.get_size(4);
-            size_t S = recon_bit.data_.data_.get_size(5);
-            size_t SLC = recon_bit.data_.data_.get_size(6);
-
-            // compensate for sampling limits under acceleration
-            if (E1 - 1 - recon_bit.data_.sampling_.sampling_limits_[1].max_ < acceFactorE1_[encoding])
-            {
-                recon_bit.data_.sampling_.sampling_limits_[1].max_ = (uint16_t)E1 - 1;
-            }
-
-            if ((E2>1) && (E2 - 1 - recon_bit.data_.sampling_.sampling_limits_[2].max_ < acceFactorE2_[encoding]))
-            {
-                recon_bit.data_.sampling_.sampling_limits_[2].max_ = (uint16_t)E2 - 1;
-            }
-
-            float spacingE1 = recon_bit.data_.sampling_.recon_FOV_[1] / recon_bit.data_.sampling_.recon_matrix_[1];
-            size_t encodingE1 = (size_t)std::floor(recon_bit.data_.sampling_.encoded_FOV_[1] / spacingE1 + 0.5);
-
-            if (encodingE1 > E1)
-            {
-                GDEBUG_STREAM("recon_squared_pixel is true; change encoding E1 to be " << encodingE1);
-
-                // pad the data
-                hoNDArray< std::complex<float> > dataPadded;
-                Gadgetron::pad(RO, encodingE1, &recon_bit.data_.data_, &dataPadded);
-                recon_bit.data_.data_ = dataPadded;
-
-                // update the sampling_limits
-                uint16_t offsetE1 = (uint16_t)(encodingE1 / 2 - E1 / 2);
-
-                recon_bit.data_.sampling_.sampling_limits_[1].min_ += offsetE1;
-                recon_bit.data_.sampling_.sampling_limits_[1].max_ += offsetE1;
-
-                // update image headers
-                size_t headerE1 = recon_bit.data_.headers_.get_size(0);
-                size_t headerE2 = recon_bit.data_.headers_.get_size(1);
-
-                size_t n, s, slc, e1, e2;
-
-                for (slc = 0; slc < SLC; slc++)
-                {
-                    for (s = 0; s < S; s++)
-                    {
-                        for (n = 0; n < N; n++)
-                        {
-                            for (e2 = 0; e2 < headerE2; e2++)
-                            {
-                                for (e1 = 0; e1 < headerE1; e1++)
-                                {
-                                    if (recon_bit.data_.headers_(e1, e2, n, s, slc).measurement_uid != 0)
-                                    {
-                                        recon_bit.data_.headers_(e1, e2, n, s, slc).idx.kspace_encode_step_1 += offsetE1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // if calib_mode is embedded, pad the ref
-                if (calib_mode_[encoding] == Gadgetron::ISMRMRD_embedded)
-                {
-                    if (recon_bit.ref_->data_.get_size(0) == RO && recon_bit.ref_->data_.get_size(1) == E1)
-                    {
-                        Gadgetron::pad(RO, encodingE1, &recon_bit.ref_->data_, &dataPadded);
-                        recon_bit.ref_->data_ = dataPadded;
-
-                        recon_bit.ref_->sampling_.sampling_limits_[1].min_ += offsetE1;
-                        recon_bit.ref_->sampling_.sampling_limits_[1].max_ += offsetE1;
-                    }
-                }
-            }
-            else
-            {
-                GDEBUG_STREAM("recon_squared_pixel is true; but it is not required to change encoding E1 ... ");
-            }
-        }
-        catch (...)
-        {
-            GADGET_THROW("Errors happened in GenericReconGadget::prepare_squared_pixel_recon(...) ... ");
-        }
-    }
-
-    // ----------------------------------------------------------------------------------------
-
     void GenericReconGadget::make_ref_coil_map(IsmrmrdDataBuffered& ref_, std::vector<size_t>  recon_dims, hoNDArray< std::complex<float> >& ref_calib, hoNDArray< std::complex<float> >& ref_coil_map, size_t encoding)
     {
 
@@ -423,6 +336,9 @@ namespace Gadgetron {
             size_t recon_E2 = recon_dims[2];
 
             // ref array size
+            size_t ref_data_RO = ref_data.get_size(0);
+            size_t ref_data_E1 = ref_data.get_size(1);
+            size_t ref_data_E2 = ref_data.get_size(2);
             size_t CHA = ref_data.get_size(3);
             size_t N = ref_data.get_size(4);
             size_t S = ref_data.get_size(5);
@@ -439,20 +355,28 @@ namespace Gadgetron {
             size_t E1 = eE1 - sE1 + 1;
             size_t E2 = eE2 - sE2 + 1;
 
+            // cut the center region for ref coil map
             if ((calib_mode_[encoding] == Gadgetron::ISMRMRD_interleaved) || (calib_mode_[encoding] == Gadgetron::ISMRMRD_noacceleration))
             {
-                E1 = 2 * std::max(cE1 - sE1, eE1 - cE1+1);
+                E1 = 2 * std::min(cE1 - sE1, eE1 - cE1+1) - 1;
                 if (E1>recon_E1) E1 = recon_E1;
 
                 if (E2 > 1)
                 {
-                    E2 = 2 * std::max(cE2 - sE2, eE2 - cE2 + 1);
+                    E2 = 2 * std::min(cE2 - sE2, eE2 - cE2 + 1) - 1;
                     if (E2 > recon_E2) E2 = recon_E2;
                 }
             }
 
             ref_coil_map.create(RO, E1, E2, CHA, N, S, SLC);
             Gadgetron::clear(ref_coil_map);
+
+            // make sure center aligned
+            size_t ref_sE1 = cE1 - E1 / 2;
+            size_t ref_eE1 = ref_sE1 + E1 - 1;
+
+            size_t ref_sE2 = cE2 - E2 / 2;
+            size_t ref_eE2 = ref_sE2 + E2 - 1;
 
             size_t slc, s, n, cha, e2, e1;
             for (slc = 0; slc < SLC; slc++)
@@ -463,12 +387,12 @@ namespace Gadgetron {
                     {
                         for (cha = 0; cha < CHA; cha++)
                         {
-                            for (e2 = sE2; e2 <= eE2; e2++)
+                            for (e2 = ref_sE2; e2 <= ref_eE2; e2++)
                             {
-                                for (e1 = sE1; e1 <= eE1; e1++)
+                                for (e1 = ref_sE1; e1 <= ref_eE1; e1++)
                                 {
-                                    std::complex<float>* pSrc = &(ref_data(0, e1-sE1, e2-sE2, cha, n, s, slc));
-                                    std::complex<float>* pDst = &(ref_coil_map(0, e1, e2, cha, n, s, slc));
+                                    std::complex<float>* pSrc = &(ref_data(0, e1, e2, cha, n, s, slc));
+                                    std::complex<float>* pDst = &(ref_coil_map(0, e1- ref_sE1, e2- ref_sE2, cha, n, s, slc));
 
                                     memcpy(pDst + sRO, pSrc, sizeof(std::complex<float>)*(eRO - sRO + 1));
                                 }
@@ -478,7 +402,6 @@ namespace Gadgetron {
                 }
             }
 
-/**
             if (!debug_folder_full_path_.empty())
             {
                 std::stringstream os;
@@ -486,14 +409,12 @@ namespace Gadgetron {
 
                 gt_exporter_.exportArrayComplex(ref_coil_map, debug_folder_full_path_ + "ref_coil_map_before_filtering_" + os.str());
             }
-**/
 
             // filter the ref_coil_map
             if (filter_RO_ref_coi_map_.get_size(0) != RO)
             {
                 Gadgetron::generate_symmetric_filter_ref(ref_coil_map.get_size(0), ref_.sampling_.sampling_limits_[0].min_, ref_.sampling_.sampling_limits_[0].max_, filter_RO_ref_coi_map_);
 
-/**
                 if (!debug_folder_full_path_.empty())
                 {
                     std::stringstream os;
@@ -501,14 +422,12 @@ namespace Gadgetron {
 
                     gt_exporter_.exportArrayComplex(filter_RO_ref_coi_map_, debug_folder_full_path_ + "filter_RO_ref_coi_map_" + os.str());
                 }
-**/
             }
 
             if (filter_E1_ref_coi_map_.get_size(0) != E1)
             {
-                Gadgetron::generate_symmetric_filter_ref(ref_coil_map.get_size(1), ref_.sampling_.sampling_limits_[1].min_, ref_.sampling_.sampling_limits_[1].max_, filter_E1_ref_coi_map_);
+                Gadgetron::generate_symmetric_filter_ref(ref_coil_map.get_size(1), 0, E1-1, filter_E1_ref_coi_map_);
 
-/**
                 if (!debug_folder_full_path_.empty())
                 {
                     std::stringstream os;
@@ -516,14 +435,12 @@ namespace Gadgetron {
 
                     gt_exporter_.exportArrayComplex(filter_E1_ref_coi_map_, debug_folder_full_path_ + "filter_E1_ref_coi_map_" + os.str());
                 }
-**/
             }
 
             if ( (E2 > 1) && (filter_E2_ref_coi_map_.get_size(0) != E2) )
             {
-                Gadgetron::generate_symmetric_filter_ref(ref_coil_map.get_size(2), ref_.sampling_.sampling_limits_[2].min_, ref_.sampling_.sampling_limits_[2].max_, filter_E2_ref_coi_map_);
+                Gadgetron::generate_symmetric_filter_ref(ref_coil_map.get_size(2), 0, E2-1, filter_E2_ref_coi_map_);
 
-/**
                 if (!debug_folder_full_path_.empty())
                 {
                     std::stringstream os;
@@ -531,7 +448,6 @@ namespace Gadgetron {
 
                     gt_exporter_.exportArrayComplex(filter_E2_ref_coi_map_, debug_folder_full_path_ + "filter_E2_ref_coi_map_" + os.str());
                 }
-**/
             }
 
             hoNDArray< std::complex<float> > ref_recon_buf;
@@ -545,7 +461,6 @@ namespace Gadgetron {
                 Gadgetron::apply_kspace_filter_ROE1(ref_coil_map, filter_RO_ref_coi_map_, filter_E1_ref_coi_map_, ref_recon_buf);
             }
 
-/**
             if (!debug_folder_full_path_.empty())
             {
                 std::stringstream os;
@@ -553,7 +468,6 @@ namespace Gadgetron {
 
                 gt_exporter_.exportArrayComplex(ref_recon_buf, debug_folder_full_path_ + "ref_coil_map_after_filtering_" + os.str());
             }
-**/
 
             // pad the ref_coil_map into the data array
             Gadgetron::pad(recon_RO, recon_E1, recon_E2, &ref_recon_buf, &ref_coil_map);
@@ -561,7 +475,6 @@ namespace Gadgetron {
             std::vector<size_t> dim = *ref_data.get_dimensions();
             ref_calib.create(dim, ref_data.begin());
 
-/**
             if (!debug_folder_full_path_.empty())
             {
                 std::stringstream os;
@@ -570,7 +483,6 @@ namespace Gadgetron {
                 gt_exporter_.exportArrayComplex(ref_coil_map, debug_folder_full_path_ + "ref_coil_map_" + os.str());
                 gt_exporter_.exportArrayComplex(ref_calib, debug_folder_full_path_ + "ref_calib_" + os.str());
             }
-**/
         }
         catch (...)
         {
@@ -595,7 +507,6 @@ namespace Gadgetron {
                 Gadgetron::hoNDFFT<float>::instance()->ifft2c(ref_coil_map, complex_im_recon_buf_);
             }
 
-/**
             if (!debug_folder_full_path_.empty())
             {
                 std::stringstream os;
@@ -603,7 +514,7 @@ namespace Gadgetron {
 
                 gt_exporter_.exportArrayComplex(complex_im_recon_buf_, debug_folder_full_path_ + "complex_im_for_coil_map_" + os.str());
             }
-**/
+
             if (coil_map_algorithm.value() == "Inati")
             {
                 size_t ks = 7;
@@ -621,7 +532,7 @@ namespace Gadgetron {
 
                 Gadgetron::coil_map_Inati_Iter(complex_im_recon_buf_, coil_map, ks, kz, iterNum, thres);
             }
-/**
+
             if (!debug_folder_full_path_.empty())
             {
                 std::stringstream os;
@@ -629,7 +540,7 @@ namespace Gadgetron {
 
                 gt_exporter_.exportArrayComplex(coil_map, debug_folder_full_path_ + "coil_map_" + os.str());
             }
-**/
+
         }
         catch (...)
         {

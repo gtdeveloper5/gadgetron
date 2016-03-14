@@ -118,5 +118,8 @@ namespace Gadgetron {
 
         // unwrapping or coil combination
         virtual void perform_unwrapping(IsmrmrdReconBit& recon_bit, ReconObjType& recon_obj, size_t encoding);
+
+        // compute snr map
+        virtual void compute_snr_map(ReconObjType& recon_obj, hoNDArray< std::complex<float> >& snr_map);
     };
 }

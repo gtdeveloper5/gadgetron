@@ -77,9 +77,6 @@
         <!-- image series -->
         <property><name>image_series</name><value>0</value></property>
 
-        <!-- Whether to perform squared pixel recon -->
-        <property><name>recon_squared_pixel</name><value>true</value></property>
-
         <!-- Coil map estimation, Inati or Inati_Iter -->
         <property><name>coil_map_algorithm</name><value>Inati</value></property>
 
@@ -101,7 +98,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value>DebugFolder</value></property>
         <property><name>perform_timing</name><value>false</value></property>
-        <property><name>verbose</name><value>false</value></property>
+        <property><name>verbose</name><value>true</value></property>
 
         <!-- if incoming images have this meta field, it will not be processed -->
         <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
@@ -122,7 +119,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value>DebugFolder</value></property>
         <property><name>perform_timing</name><value>false</value></property>
-        <property><name>verbose</name><value>false</value></property>
+        <property><name>verbose</name><value>true</value></property>
 
         <!-- if incoming images have this meta field, it will not be processed -->
         <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
@@ -150,7 +147,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value>DebugFolder</value></property>
         <property><name>perform_timing</name><value>false</value></property>
-        <property><name>verbose</name><value>false</value></property>
+        <property><name>verbose</name><value>true</value></property>
     </gadget>
 
     <!-- Image Array Scaling -->
@@ -161,7 +158,7 @@
 
         <!-- parameters for debug and timing -->
         <property><name>perform_timing</name><value>false</value></property>
-        <property><name>verbose</name><value>false</value></property>
+        <property><name>verbose</name><value>true</value></property>
 
         <property><name>min_intensity_value</name><value>64</value></property>
         <property><name>max_intensity_value</name><value>4095</value></property>

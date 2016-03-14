@@ -80,7 +80,7 @@ namespace Gadgetron {
 
         // ---------------------------------------------------------------------------------------------------------
         // generate the destination folder
-        /*if (!debug_folder.value().empty())
+        if (!debug_folder.value().empty())
         {
             Gadgetron::get_debug_folder_path(debug_folder.value(), debug_folder_full_path_);
             GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is " << debug_folder_full_path_);
@@ -88,7 +88,7 @@ namespace Gadgetron {
         else
         {
             GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is not set ... ");
-        }*/
+        }
 
         return GADGET_OK;
     }
@@ -112,14 +112,14 @@ namespace Gadgetron {
             GDEBUG_STREAM(os.str());
         }
 
-        //if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "data_before_FOV_adjustment"); }
+        if(!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "data_before_FOV_adjustment"); }
 
         // ----------------------------------------------------------
         // FOV adjustment
         // ----------------------------------------------------------
         GADGET_CHECK_RETURN(this->adjust_FOV(*recon_res_) == GADGET_OK, GADGET_FAIL);
 
-        //if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "data_after_FOV_adjustment"); }
+        if(!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "data_after_FOV_adjustment"); }
 
         // make sure the image header is consistent with data
         size_t N = recon_res_->headers_.get_number_of_elements();

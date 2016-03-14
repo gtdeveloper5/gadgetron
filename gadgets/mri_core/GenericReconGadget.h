@@ -17,7 +17,7 @@
 
 #include "hoNDArray_utils.h"
 
-// #include "gtPlusIOAnalyze.h"
+#include "gtPlusIOAnalyze.h"
 
 #include "GadgetStreamController.h"
 
@@ -48,9 +48,6 @@ namespace Gadgetron {
 
         /// image series
         GADGET_PROPERTY(image_series, int, "Image series number", 0);
-
-        /// square-pixel-recon
-        GADGET_PROPERTY(recon_squared_pixel, bool, "Whether to enforce the recon stop to produce images with squared pixel size along RO and E1", true);
 
         /// coil map estimation method
         GADGET_PROPERTY_LIMITS(coil_map_algorithm, std::string, "Method for coil map estimation", "Inati",
@@ -102,18 +99,15 @@ namespace Gadgetron {
         // variables for debug and timing
         // --------------------------------------------------
 
-        // in verbose mode, more info is printed out
-        bool verbose_;
-
         // clock for timing
         Gadgetron::GadgetronTimer gt_timer_local_;
         Gadgetron::GadgetronTimer gt_timer_;
 
-        //// debug folder
-        //std::string debug_folder_full_path_;
+        // debug folder
+        std::string debug_folder_full_path_;
 
-        //// exporter
-        //Gadgetron::gtPlus::gtPlusIOAnalyze gt_exporter_;
+        // exporter
+        Gadgetron::gtPlus::gtPlusIOAnalyze gt_exporter_;
 
         // --------------------------------------------------
         // gadget functions
@@ -125,13 +119,6 @@ namespace Gadgetron {
         // --------------------------------------------------
         // recon step functions
         // --------------------------------------------------
-
-        // prepare recon
-        // if the squared pixel recon if prescribed, the new recon image size to ensure squared pixel will be computed
-        // if needed, the incoming data matrix will be padded and ref_preparer_ recon size will be updated
-        // then all recon components will be set with updated parameters
-        // finally, the consistency of this recon will be checked; if necessary, changes will be made to ensure the parameter consistency
-        virtual void prepare_squared_pixel_recon(IsmrmrdReconBit& recon_bit, size_t encoding);
 
         // make the ref data for coil map estimation
         virtual void make_ref_coil_map(IsmrmrdDataBuffered& ref_, std::vector<size_t> recon_dims, hoNDArray< std::complex<float> >& ref_calib, hoNDArray< std::complex<float> >& ref_coil_map, size_t encoding);

@@ -18,7 +18,7 @@
 #include "ismrmrd/meta.h"
 #include "GadgetronTimer.h"
 
-// #include "gtPlusIOAnalyze.h"
+#include "gtPlusIOAnalyze.h"
 
 #include "GadgetStreamController.h"
 
@@ -87,13 +87,13 @@ namespace Gadgetron {
         // --------------------------------------------------
 
         // debug folder
-        // std::string debug_folder_full_path_;
+        std::string debug_folder_full_path_;
 
         // clock for timing
         Gadgetron::GadgetronTimer gt_timer_;
 
         // exporter
-        // Gadgetron::gtPlus::gtPlusIOAnalyze gt_exporter_;
+        Gadgetron::gtPlus::gtPlusIOAnalyze gt_exporter_;
 
         // in verbose mode, more info is printed out
         bool verbose_;

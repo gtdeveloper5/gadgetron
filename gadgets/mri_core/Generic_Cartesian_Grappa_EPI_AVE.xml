@@ -117,9 +117,6 @@
         <!-- image series -->
         <property><name>image_series</name><value>0</value></property>
 
-        <!-- Whether to perform squared pixel recon -->
-        <property><name>recon_squared_pixel</name><value>true</value></property>
-
         <!-- Coil map estimation, Inati or Inati_Iter -->
         <property><name>coil_map_algorithm</name><value>Inati</value></property>
 

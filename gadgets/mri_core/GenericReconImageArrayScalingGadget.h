@@ -49,6 +49,9 @@ namespace Gadgetron {
 
         GADGET_PROPERTY(use_dedicated_scalingFactor_meta_field, std::string, "If this meta field exists, scale the images with the dedicated scaling factor", "Use_dedicated_scaling_factor");
         GADGET_PROPERTY(scalingFactor_dedicated, float, "Dedicated scaling ratio", 100.0);
+        GADGET_PROPERTY(scalingFactor_gfactor_map, float, "Scaling ratio for gfactor map", 100.0);
+        GADGET_PROPERTY(scalingFactor_snr_map, float, "Scaling ratio for snr map", 10.0);
+        GADGET_PROPERTY(scalingFactor_snr_std_map, float, "Scaling ratio for snr standard deviation map", 1000.0);
 
         /// ------------------------------------------------------------------------------------
         /// debug and timing

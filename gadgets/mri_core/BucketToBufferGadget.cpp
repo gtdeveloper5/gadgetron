@@ -385,15 +385,7 @@ namespace Gadgetron{
             // if seperate or external calibration mode, using the acq length for NE0
             if (encoding.parallelImaging)
             {
-                if (forref && (encoding.parallelImaging.get().calibrationMode.get() == "separate"
-                    || encoding.parallelImaging.get().calibrationMode.get() == "external"))
-                {
-                    NE0 = acqhdr.number_of_samples;
-                }
-                else
-                {
-                    NE0 = encoding.reconSpace.matrixSize.x;
-                }
+                NE0 = acqhdr.number_of_samples;
             }
             else
             {
@@ -543,14 +535,14 @@ namespace Gadgetron{
           NS = 1;
         }
 
-        GDEBUG_STREAM("Data dimensions:" << std::endl);
-        GDEBUG_STREAM("   NE0:  " << NE0  << std::endl);
-        GDEBUG_STREAM("   NE1:  " << NE1  << std::endl);
-        GDEBUG_STREAM("   NE2:  " << NE2  << std::endl);
-        GDEBUG_STREAM("   NLOC: " << NLOC << std::endl);
-        GDEBUG_STREAM("   NCHA: " << NCHA << std::endl);
-        GDEBUG_STREAM("   NN:   " << NN   << std::endl);
-        GDEBUG_STREAM("   NS:   " << NS   << std::endl);
+        //GDEBUG_STREAM("Data dimensions:" << std::endl);
+        //GDEBUG_STREAM("   NE0:  " << NE0  << std::endl);
+        //GDEBUG_STREAM("   NE1:  " << NE1  << std::endl);
+        //GDEBUG_STREAM("   NE2:  " << NE2  << std::endl);
+        //GDEBUG_STREAM("   NLOC: " << NLOC << std::endl);
+        //GDEBUG_STREAM("   NCHA: " << NCHA << std::endl);
+        //GDEBUG_STREAM("   NN:   " << NN   << std::endl);
+        //GDEBUG_STREAM("   NS:   " << NS   << std::endl);
 
         //Allocate the array for the data
         dataBuffer.data_.create(NE0, NE1, NE2, NCHA, NN, NS, NLOC);
@@ -638,7 +630,7 @@ namespace Gadgetron{
             encoding.encodingLimits.kspace_encoding_step_2->minimum + space_matrix_offset_E2;
         sampling.sampling_limits_[2].max_ =
             encoding.encodingLimits.kspace_encoding_step_2->maximum + space_matrix_offset_E2;
-        sampling.sampling_limits_[2].center_ = sampling.encoded_matrix_[1] / 2;
+        sampling.sampling_limits_[2].center_ = sampling.encoded_matrix_[2] / 2;
     }
     else
     {

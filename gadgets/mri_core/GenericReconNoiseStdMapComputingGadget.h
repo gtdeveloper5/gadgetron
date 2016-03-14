@@ -1,15 +1,9 @@
-/** \file   GenericReconPartialFourierHandlingGadget.h
-    \brief  This is the class gadget for both 2DT and 3DT cartesian partial fourier handling, working on the IsmrmrdImageArray.
+/** \file   GenericReconNoiseStdMapComputingGadget.h
+    \brief  This is the class gadget to compute standard deviation map, working on the IsmrmrdImageArray.
 
-            This class is a part of general cartesian recon chain.
+            This class is a part of general cartesian recon chain. It computes the std map on incoming SNR images.
 
-            The sampled kspace region is found from image meta in fields:
-
-            sampling_limits_RO
-            sampling_limits_E1
-            sampling_limits_E2
-
-    \author Hui Xue
+\author     Hui Xue
 */
 
 #pragma once
@@ -27,20 +21,14 @@
 
 #include "GadgetStreamController.h"
 
-#include "hoNDArray_utils.h"
-#include "hoNDArray_elemwise.h"
-#include "hoNDFFT.h"
-
 #include "mri_core_data.h"
-#include "mri_core_utility.h"
-#include "mri_core_partial_fourier.h"
 
 namespace Gadgetron {
 
-    class EXPORTGADGETSMRICORE GenericReconPartialFourierHandlingGadget : public Gadget1<IsmrmrdImageArray>
+    class EXPORTGADGETSMRICORE GenericReconNoiseStdMapComputingGadget : public Gadget1<IsmrmrdImageArray>
     {
     public:
-        GADGET_DECLARE(GenericReconPartialFourierHandlingGadget);
+        GADGET_DECLARE(GenericReconNoiseStdMapComputingGadget);
 
         typedef float real_value_type;
         typedef std::complex<real_value_type> ValueType;
@@ -48,19 +36,24 @@ namespace Gadgetron {
 
         typedef Gadget1<IsmrmrdImageArray> BaseClass;
 
-        GenericReconPartialFourierHandlingGadget();
-        ~GenericReconPartialFourierHandlingGadget();
+        GenericReconNoiseStdMapComputingGadget();
+        ~GenericReconNoiseStdMapComputingGadget();
 
         /// ------------------------------------------------------------------------------------
         /// parameters to control the reconstruction
         /// ------------------------------------------------------------------------------------
-        GADGET_PROPERTY(skip_processing_meta_field, std::string, "If this meta field exists, pass the incoming image array to next gadget without processing", "Skip_processing_after_recon");
 
         /// ------------------------------------------------------------------------------------
         /// debug and timing
         GADGET_PROPERTY(verbose, bool, "Whether to print more information", false);
         GADGET_PROPERTY(debug_folder, std::string, "If set, the debug output will be written out", "");
         GADGET_PROPERTY(perform_timing, bool, "Whether to perform timing on some computational steps", false);
+
+        /// ------------------------------------------------------------------------------------
+        /// start N index to compute std map
+        GADGET_PROPERTY(start_N_for_std_map, int, "Start N index to compute std map", 5);
+
+        // ------------------------------------------------------------------------------------
 
     protected:
 
@@ -70,28 +63,6 @@ namespace Gadgetron {
 
         // number of encoding spaces in the protocol
         size_t num_encoding_spaces_;
-
-        // acceleration factor for E1 and E2
-        std::vector<double> acceFactorE1_;
-        std::vector<double> acceFactorE2_;
-
-        // --------------------------------------------------
-        // variable for recon
-        // --------------------------------------------------
-
-        // sampled range
-        size_t startRO_;
-        size_t endRO_;
-        size_t startE1_;
-        size_t endE1_;
-        size_t startE2_;
-        size_t endE2_;
-
-        // kspace buffer
-        hoNDArray<T> kspace_buf_;
-
-        // results of pf handling
-        hoNDArray<T> pf_res_;
 
         // number of times the process function is called
         size_t process_called_times_;
@@ -104,8 +75,9 @@ namespace Gadgetron {
         std::string debug_folder_full_path_;
 
         // clock for timing
-        Gadgetron::GadgetronTimer gt_timer_local_;
-        Gadgetron::GadgetronTimer gt_timer_;
+        Gadgetron::GadgetronTimer gt_timer1_;
+        Gadgetron::GadgetronTimer gt_timer2_;
+        Gadgetron::GadgetronTimer gt_timer3_;
 
         // exporter
         Gadgetron::gtPlus::gtPlusIOAnalyze gt_exporter_;
@@ -123,11 +95,5 @@ namespace Gadgetron {
 
         // close call
         int close(unsigned long flags);
-
-        // --------------------------------------------------
-        // implementation functions
-        // --------------------------------------------------
-        virtual int perform_partial_fourier_handling() = 0;
-
     };
 }

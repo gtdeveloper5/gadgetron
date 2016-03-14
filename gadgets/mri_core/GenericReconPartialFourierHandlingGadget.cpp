@@ -78,7 +78,7 @@ namespace Gadgetron {
 
         // ---------------------------------------------------------------------------------------------------------
         // generate the destination folder
-        /*if (!debug_folder.value().empty())
+        if (!debug_folder.value().empty())
         {
             Gadgetron::get_debug_folder_path(debug_folder.value(), debug_folder_full_path_);
             GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is " << debug_folder_full_path_);
@@ -86,7 +86,7 @@ namespace Gadgetron {
         else
         {
             GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is not set ... ");
-        }*/
+        }
 
         return GADGET_OK;
     }
@@ -128,6 +128,12 @@ namespace Gadgetron {
 
         size_t encoding = (size_t)recon_res_->meta_[0].as_long("encoding", 0);
         GADGET_CHECK_RETURN(encoding<num_encoding_spaces_, GADGET_FAIL);
+
+        std::string dataRole = std::string(recon_res_->meta_[0].as_str(GADGETRON_DATA_ROLE));
+
+        std::stringstream os;
+        os << "encoding_" << encoding << "_" << dataRole;
+        std::string str = os.str();
 
         // perform SNR unit scaling
         SamplingLimit sampling_limits[3];
@@ -209,20 +215,14 @@ namespace Gadgetron {
             Gadgetron::hoNDFFT<typename realType<T>::Type>::instance()->fft2c(recon_res_->data_, kspace_buf_);
         }
 
-        /*if (!debug_folder_full_path_.empty())
-        {
-            gt_exporter_.exportArrayComplex(kspace_buf_, debug_folder_full_path_ + "kspace_before_pf");
-        }*/
+        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspace_buf_, debug_folder_full_path_ + "kspace_before_pf_" + str); }
 
         // ----------------------------------------------------------
         // pf handling
         // ----------------------------------------------------------
         GADGET_CHECK_RETURN(this->perform_partial_fourier_handling() == GADGET_OK, GADGET_FAIL);
 
-        /*if (!debug_folder_full_path_.empty())
-        {
-            gt_exporter_.exportArrayComplex(pf_res_, debug_folder_full_path_ + "kspace_after_pf");
-        }*/
+        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(pf_res_, debug_folder_full_path_ + "image_after_pf_" + str); }
 
         // ----------------------------------------------------------
         // go back to image domain
@@ -236,10 +236,7 @@ namespace Gadgetron {
             Gadgetron::hoNDFFT<typename realType<T>::Type>::instance()->ifft2c(pf_res_, recon_res_->data_);
         }
 
-        /*if (!debug_folder_full_path_.empty())
-        {
-            gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "data_after_pf");
-        }*/
+        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_res_->data_, debug_folder_full_path_ + "kspace_after_pf_" + str); }
 
         GDEBUG_CONDITION_STREAM(verbose.value(), "GenericReconPartialFourierHandlingGadget::process(...) ends ... ");
 
