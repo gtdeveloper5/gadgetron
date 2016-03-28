@@ -135,7 +135,7 @@ namespace Gadgetron{
       N_ = NONE;
     }
 
-    GDEBUG_STREAM("N DIMENSION IS: ", Gadgetron::get_name_from_ismrmrd_dimension(N_));
+    GDEBUG_STREAM("N DIMENSION IS: " << Gadgetron::get_name_from_ismrmrd_dimension(N_));
 
     if (S_dimension.value().size() == 0) {
         S_ = NONE;
@@ -158,7 +158,7 @@ namespace Gadgetron{
         S_ = NONE;
     }
 
-    GDEBUG_STREAM("S DIMENSION IS: ", Gadgetron::get_name_from_ismrmrd_dimension(S_));
+    GDEBUG_STREAM("S DIMENSION IS: " << Gadgetron::get_name_from_ismrmrd_dimension(S_));
 
     split_slices_  = split_slices.value();
     GDEBUG("SPLIT SLICES IS: %b\n", split_slices_);
