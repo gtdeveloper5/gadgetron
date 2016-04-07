@@ -142,12 +142,6 @@ namespace Gadgetron {
         ISMRMRD_INTERP_RETRO_GATING_BSPLINE
     };
 
-    /// data flow tag
-    /// if this flag is set to be 1 for a image, the image is immediately passed to the next gadget
-    /// if this flag is 0, this image is a stored image by the accummulator
-    /// whether to pass a stored image to the next gadget is determined by the processing gadget itself
-    #define GADGETRON_PASS_IMMEDIATE                       "GT_PASSIMAGE_IMMEDIATE"
-
     /// ISMRMRD Image fields
     //#define ISMRMRD_IMAGE_version                       "ISMRMRD_IMAGE_version"
     //#define ISMRMRD_IMAGE_flags                         "ISMRMRD_IMAGE_flags"
