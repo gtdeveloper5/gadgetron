@@ -6,6 +6,8 @@ namespace Gadgetron {
     template<typename T, int D> 
     GenericReconImagePostProcessingGadget<T, D>::GenericReconImagePostProcessingGadget() : BaseClass(), process_called_times_(0)
     {
+        gt_timer_.set_timing_in_destruction(false);
+        gt_timer_local_.set_timing_in_destruction(false);
     }
 
     template<typename T, int D>
@@ -50,6 +52,18 @@ namespace Gadgetron {
 
         meas_max_idx_.segment = 0;
 
+        // ------------------------------------------------------------
+
+        if (!debug_folder.value().empty())
+        {
+            Gadgetron::get_debug_folder_path(debug_folder.value(), debug_folder_full_path_);
+            GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is " << debug_folder_full_path_);
+        }
+        else
+        {
+            GDEBUG_CONDITION_STREAM(verbose.value(), "Debug folder is not set ... ");
+        }
+
         return GADGET_OK;
     }
 
@@ -65,7 +79,7 @@ namespace Gadgetron {
 
         ImageBufferType& ori = *m1->getObjectPtr();
 
-        if ( ori.get_number_of_elements() == 1 )
+        if ( ori.get_number_of_elements() > 0 )
         {
             size_t num = (*ori(0)).attrib_.length(GADGETRON_DATA_ROLE);
             GADGET_CHECK_RETURN(num>0, GADGET_FAIL);
@@ -411,6 +425,52 @@ namespace Gadgetron {
 
         return GADGET_FAIL;
     }
+
+    /*template<typename T, int D>
+    void GenericReconImagePostProcessingGadget<T, D>::export_image_container(const hoNDImageContainer2D< hoNDImage<std::complex<T>, D> >& input, const std::string& name)
+    {
+        if (!this->debugFolder_.empty())
+        {
+            size_t R = input.rows();
+
+            size_t r;
+
+            hoNDArray<ValueType> outArray;
+
+            for (r = 0; r<R; r++)
+            {
+                input.to_NDArray(r, outArray);
+
+                std::ostringstream ostr;
+                ostr << prefix << "_" << r;
+
+                if (!debugFolder_fullPath_.empty()) gt_exporter_.exportArrayComplex(outArray, debugFolder_fullPath_ + ostr.str());
+            }
+        }
+    }
+
+    template<typename T, int D>
+    void GenericReconImagePostProcessingGadget<T, D>::export_image_container(const hoNDImageContainer2D< hoNDImage<T, D> >& input, const std::string& name)
+    {
+        if (!this->debugFolder_.empty())
+        {
+            size_t R = input.rows();
+
+            size_t r;
+
+            hoNDArray<T> outArray;
+
+            for (r = 0; r<R; r++)
+            {
+                input.to_NDArray(r, outArray);
+
+                std::ostringstream ostr;
+                ostr << prefix << "_" << r;
+
+                if (!debugFolder_fullPath_.empty()) gt_exporter_.exportArray(outArray, debugFolder_fullPath_ + ostr.str());
+            }
+        }
+    }*/
 
     GenericReconImagePostProcessing2DGadget::GenericReconImagePostProcessing2DGadget() : BaseClass()
     {

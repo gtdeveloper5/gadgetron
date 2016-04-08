@@ -17,7 +17,7 @@ int FatWaterSeparationGadget::process_config(ACE_Message_Block* mb)
     return GADGET_OK;
 }
 
-int FatWaterSeparationGadget::processImageBuffer(ImageBufferType& ori)
+int FatWaterSeparationGadget::process_image_buffer(ImageBufferType& ori)
 {
     GDEBUG_CONDITION_STREAM(verbose.value(), "FatWaterSeparationGadget::processImageBuffer(...) starts ... ");
 
@@ -39,45 +39,56 @@ int FatWaterSeparationGadget::processImageBuffer(ImageBufferType& ori)
     {
         ImageBufferType water, fat, t2s_map, field_map;
 
-        /*GADGET_CHECK_RETURN(this->performT2W(ori, oriMagT2W, oriMagT2WNoSCC, oriMagPD), GADGET_FAIL);
+        GADGET_CHECK_RETURN(this->perform_fat_water(ori, water, fat, t2s_map, field_map) == GADGET_OK, GADGET_FAIL);
 
-        processStr.push_back(GADGETRON_IMAGE_SURFACECOILCORRECTION);
-
-        if ( send_ori_T2W_ )
+        if (send_water_images.value())
         {
             processStr.clear();
-            processStr.push_back(GADGETRON_IMAGE_SURFACECOILCORRECTION);
+            processStr.push_back(GADGETRON_IMAGE_WATER);
 
             dataRole.clear();
-            dataRole.push_back(GADGETRON_IMAGE_SURFACECOILCORRECTION);
-            dataRole.push_back(GADGETRON_IMAGE_T2W);
+            dataRole.push_back(GADGETRON_IMAGE_WATER);
 
-            GADGET_CHECK_RETURN(this->sendOutImages(oriMagT2W, image_series_num_+1, processStr, dataRole), GADGET_FAIL);
-
-            if (send_no_scc_T2W_)
-            {
-                processStr.clear();
-
-                dataRole.clear();
-                dataRole.push_back(GADGETRON_IMAGE_T2W);
-
-                GADGET_CHECK_RETURN(this->sendOutImages(oriMagT2WNoSCC, image_series_num_ + 9, processStr, dataRole), GADGET_FAIL);
-            }
+            GADGET_CHECK_RETURN(this->send_out_images(water, processing_result_image_series_num.value() +1, processStr, dataRole) == GADGET_OK, GADGET_FAIL);
         }
 
-        if ( send_ori_PD_ )
+        if (send_fat_images.value())
         {
             processStr.clear();
+            processStr.push_back(GADGETRON_IMAGE_FAT);
 
             dataRole.clear();
-            dataRole.push_back(GADGETRON_IMAGE_PD);
+            dataRole.push_back(GADGETRON_IMAGE_FAT);
 
-            GADGET_CHECK_RETURN(this->sendOutImages(oriMagPD, image_series_num_+2, processStr, dataRole), GADGET_FAIL);
+            GADGET_CHECK_RETURN(this->send_out_images(fat, processing_result_image_series_num.value() + 2, processStr, dataRole) == GADGET_OK, GADGET_FAIL);
         }
 
-        GADGET_CHECK_RETURN(this->releaseImageBuffer(oriMagT2W), GADGET_FAIL);
-        GADGET_CHECK_RETURN(this->releaseImageBuffer(oriMagT2WNoSCC), GADGET_FAIL);
-        GADGET_CHECK_RETURN(this->releaseImageBuffer(oriMagPD), GADGET_FAIL);*/
+        if (send_t2_star_map.value())
+        {
+            processStr.clear();
+            processStr.push_back(GADGETRON_IMAGE_T2STARMAP);
+
+            dataRole.clear();
+            dataRole.push_back(GADGETRON_IMAGE_T2STARMAP);
+
+            GADGET_CHECK_RETURN(this->send_out_images(t2s_map, processing_result_image_series_num.value() + 3, processStr, dataRole) == GADGET_OK, GADGET_FAIL);
+        }
+
+        if (send_field_map.value())
+        {
+            processStr.clear();
+            processStr.push_back(GADGETRON_IMAGE_FREQMAP);
+
+            dataRole.clear();
+            dataRole.push_back(GADGETRON_IMAGE_FREQMAP);
+
+            GADGET_CHECK_RETURN(this->send_out_images(field_map, processing_result_image_series_num.value() + 4, processStr, dataRole) == GADGET_OK, GADGET_FAIL);
+        }
+
+        GADGET_CHECK_RETURN(this->release_image_buffer(water)     == GADGET_OK, GADGET_FAIL);
+        GADGET_CHECK_RETURN(this->release_image_buffer(fat)       == GADGET_OK, GADGET_FAIL);
+        GADGET_CHECK_RETURN(this->release_image_buffer(t2s_map)   == GADGET_OK, GADGET_FAIL);
+        GADGET_CHECK_RETURN(this->release_image_buffer(field_map) == GADGET_OK, GADGET_FAIL);
     }
 
     GDEBUG_CONDITION_STREAM(verbose.value(), "FatWaterSeparationGadget::process(...) ends ... ");
@@ -95,103 +106,181 @@ int FatWaterSeparationGadget::perform_fat_water(ImageBufferType& input, ImageBuf
     size_t SET = input.get_size(5);
     size_t AVE = input.get_size(6);
 
-    //std::vector<size_t> dim;
-    //input.get_dimensions(dim);
+    std::vector<size_t> dim;
+    input.get_dimensions(dim);
 
-    //dim[5] = 1; // only one set is outputted
+    dim[2] = 1; // only one contrast is outputted
 
-    //magT2W.create(dim);
-    //this->fillWithNULL(magT2W);
+    // set up outputs
+    water.create(dim);
+    fat.create(dim);
+    t2s_map.create(dim);
+    field_map.create(dim);
 
-    //magT2WNoSCC.create(dim);
-    //this->fillWithNULL(magT2WNoSCC);
+    // scaling and unit string for maps
+    std::string scalingStr_T2StarMap, unitStr_T2StarMap;
+    {
+        std::ostringstream ostr;
+        ostr << "x" << t2_star_scaling_factor.value();
+        scalingStr_T2StarMap = ostr.str();
+    }
 
-    //magPD.create(dim);
-    //this->fillWithNULL(magPD);
+    {
+        std::ostringstream ostr;
+        ostr << std::setprecision(3) << 1.0f / t2_star_scaling_factor.value() << "ms";
+        unitStr_T2StarMap = ostr.str();
+    }
 
-    //size_t cha, slc, con, phs, rep, set, ave;
+    std::string scalingStr_FieldMap, unitStr_FieldMap, offsetStr_FieldMap;
+    {
+        std::ostringstream ostr;
+        ostr << "x" << field_map_scaling_factor.value();
+        scalingStr_FieldMap = ostr.str();
+    }
 
-    //ImageContainerType inputContainer, magT2WContainer, magT2WNoSCCContainer, magPDContainer;
+    {
+        std::ostringstream ostr;
+        ostr << std::setprecision(3) << 1.0f / field_map_scaling_factor.value() << "Hz";
+        unitStr_FieldMap = ostr.str();
+    }
 
-    //psir_reconer_.perform_PSIR_ = false;
-    //psir_reconer_.compute_PSIR_windowing_  = false;
+    {
+        std::ostringstream ostr;
+        ostr << "+" << field_map_offset.value();
+        offsetStr_FieldMap = ostr.str();
+    }
 
-    //std::vector<size_t> cols(SET, CON);
-    //inputContainer.create(cols, false);
+    if(verbose.value())
+    {
+        GDEBUG_STREAM("Scaling string for t2* map : " << scalingStr_T2StarMap);
+        GDEBUG_STREAM("Unit string for t2* map : " << unitStr_T2StarMap);
+        GDEBUG_STREAM("Scaling string for field map : " << scalingStr_FieldMap);
+        GDEBUG_STREAM("Unit string for field map : " << unitStr_FieldMap);
+        GDEBUG_STREAM("Offset string for field map : " << offsetStr_FieldMap);
+    }
 
-    //for ( cha=0; cha<CHA; cha++ )
-    //{
-    //    for ( ave=0; ave<AVE; ave++ )
-    //    {
-    //        for ( slc=0; slc<SLC; slc++ )
-    //        {
-    //            ImageType gmap;
-    //            bool gMapFound = this->findGFactorMap(slc, gmap);
-    //            float gMap_scale_factor = 1.0f;
-    //            if (gMapFound)
-    //            {
-    //                GDEBUG_CONDITION_STREAM(verbose.value(), "Gfactor map for slc - " << slc << " is found ... ");
+    size_t cha, slc, con, phs, rep, set, ave;
 
-    //                if (gmap.attrib_.length(GADGETRON_IMAGE_SCALE_RATIO) > 0)
-    //                {
-    //                    gMap_scale_factor = (float)gmap.attrib_.as_double(GADGETRON_IMAGE_SCALE_RATIO, 0);
-    //                    GDEBUG_CONDITION_STREAM(verbose.value(), "Gfactor map for slc - " << slc << " has scale factor " << gMap_scale_factor);
+    ImageContainerType inputContainer, waterContainer, fatContainer, t2StarMapContainer, fieldMapContainer;
 
-    //                    Gadgetron::scal((float)(1.0 / gMap_scale_factor), gmap);
-    //                }
+    std::vector<size_t> cols(SET, CON);
+    inputContainer.create(cols, false);
 
-    //                if (!debugFolder_fullPath_.empty())
-    //                {
-    //                    std::ostringstream ostr;
-    //                    ostr << "gfactor_map_slc" << slc;
-    //                    if (!debugFolder_fullPath_.empty()) gt_exporter_.exportArrayComplex(gmap, debugFolder_fullPath_ + ostr.str());
-    //                }
-    //            }
-    //            else
-    //            {
-    //                GDEBUG_CONDITION_STREAM(true, "Gfactor map for slc - " << slc << " is NOT found ... ");
-    //            }
+    for ( cha=0; cha<CHA; cha++ )
+    {
+        for ( ave=0; ave<AVE; ave++ )
+        {
+            for ( slc=0; slc<SLC; slc++ )
+            {
+                for ( phs=0; phs<PHS; phs++ )
+                {
+                    for ( rep=0; rep<REP; rep++ )
+                    {
+                        for ( con=0; con<CON; con++ )
+                        {
+                            for ( set=0; set<SET; set++ )
+                            {
+                                inputContainer.set(input(cha, slc, con, phs, rep, set, ave), set, con);
+                            }
+                        }
 
-    //            for ( phs=0; phs<PHS; phs++ )
-    //            {
-    //                for ( rep=0; rep<REP; rep++ )
-    //                {
-    //                    // compute PSIR for every SET/CON
+                        if (!this->debug_folder_full_path_.empty())
+                        {
+                            std::ostringstream ostr;
+                            ostr << "multi_echo_CHA" << cha << "_AVE" << ave << "_SLC" << slc << "_PHS" << phs << "_REP" << rep;
+                            this->export_image_container(inputContainer, ostr.str());
+                        }
 
-    //                    for ( con=0; con<CON; con++ )
-    //                    {
-    //                        for ( set=0; set<SET; set++ )
-    //                        {
-    //                            inputContainer.set(input(cha, slc, con, phs, rep, set, ave), set, con);
-    //                        }
-    //                    }
+                        GADGET_CHECK_RETURN(this->perform_fat_water(inputContainer, waterContainer, fatContainer, t2StarMapContainer, fieldMapContainer) == GADGET_OK, GADGET_FAIL);
 
-    //                    GADGET_CHECK_RETURN_FALSE(this->performT2W(inputContainer, gmap, magT2WContainer, magT2WNoSCCContainer, magPDContainer));
+                        if (!this->debug_folder_full_path_.empty())
+                        {
+                            std::ostringstream ostr;
+                            ostr << "water_CHA" << cha << "_AVE" << ave << "_SLC" << slc << "_PHS" << phs << "_REP" << rep;
+                            this->export_image_container(waterContainer, ostr.str());
+                        }
 
-    //                    for ( con=0; con<CON; con++ )
-    //                    {
-    //                        magT2W(cha, slc, con, phs, rep, 0, ave) = &magT2WContainer(0, con);
-    //                        magT2W(cha, slc, con, phs, rep, 0, ave)->header_ = input(cha, slc, con, phs, rep, 0, ave)->header_;
-    //                        magT2W(cha, slc, con, phs, rep, 0, ave)->attrib_ = input(cha, slc, con, phs, rep, 0, ave)->attrib_;
-    //                        magT2W(cha, slc, con, phs, rep, 0, ave)->attrib_.set(GADGETRON_IMAGE_SCALE_RATIO, psir_reconer_.scale_factor_after_SCC_);
+                        if (!this->debug_folder_full_path_.empty())
+                        {
+                            std::ostringstream ostr;
+                            ostr << "fat_CHA" << cha << "_AVE" << ave << "_SLC" << slc << "_PHS" << phs << "_REP" << rep;
+                            this->export_image_container(fatContainer, ostr.str());
+                        }
 
-    //                        magT2WNoSCC(cha, slc, con, phs, rep, 0, ave) = &magT2WNoSCCContainer(0, con);
-    //                        magT2WNoSCC(cha, slc, con, phs, rep, 0, ave)->header_ = input(cha, slc, con, phs, rep, 0, ave)->header_;
-    //                        magT2WNoSCC(cha, slc, con, phs, rep, 0, ave)->attrib_ = input(cha, slc, con, phs, rep, 0, ave)->attrib_;
+                        if (!this->debug_folder_full_path_.empty())
+                        {
+                            std::ostringstream ostr;
+                            ostr << "t2star_map_CHA" << cha << "_AVE" << ave << "_SLC" << slc << "_PHS" << phs << "_REP" << rep;
+                            this->export_image_container(t2StarMapContainer, ostr.str());
+                        }
 
-    //                        magPD(cha, slc, con, phs, rep, 0, ave) = &magPDContainer(0, con);
-    //                        magPD(cha, slc, con, phs, rep, 0, ave)->header_ = input(cha, slc, con, phs, rep, 0, ave)->header_;
-    //                        magPD(cha, slc, con, phs, rep, 0, ave)->attrib_ = input(cha, slc, con, phs, rep, 0, ave)->attrib_;
-    //                    }
+                        if (!this->debug_folder_full_path_.empty())
+                        {
+                            std::ostringstream ostr;
+                            ostr << "field_map_CHA" << cha << "_AVE" << ave << "_SLC" << slc << "_PHS" << phs << "_REP" << rep;
+                            this->export_image_container(fieldMapContainer, ostr.str());
+                        }
 
-    //                    magT2WContainer.delete_data_on_destruct(false);
-    //                    magT2WNoSCCContainer.delete_data_on_destruct(false);
-    //                    magPDContainer.delete_data_on_destruct(false);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
+                        for ( set=0; set<SET; set++ )
+                        {
+                            water(cha, slc, 0, phs, rep, set, ave) = &waterContainer(set, 0);
+                            water(cha, slc, 0, phs, rep, set, ave)->header_ = input(cha, slc, 0, phs, rep, set, ave)->header_;
+                            water(cha, slc, 0, phs, rep, set, ave)->attrib_ = input(cha, slc, 0, phs, rep, set, ave)->attrib_;
+                            water(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_WATER);
+                            water(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_WATER);
+                            water(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, GADGETRON_IMAGE_WATER);
+                            water(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_WATER);
+
+                            fat(cha, slc, 0, phs, rep, set, ave) = &fatContainer(set, 0);
+                            fat(cha, slc, 0, phs, rep, set, ave)->header_ = input(cha, slc, 0, phs, rep, set, ave)->header_;
+                            fat(cha, slc, 0, phs, rep, set, ave)->attrib_ = input(cha, slc, 0, phs, rep, set, ave)->attrib_;
+                            fat(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_FAT);
+                            fat(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_FAT);
+                            fat(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, GADGETRON_IMAGE_FAT);
+                            fat(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_FAT);
+
+                            t2s_map(cha, slc, 0, phs, rep, set, ave) = &t2StarMapContainer(set, 0);
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->header_ = input(cha, slc, 0, phs, rep, set, ave)->header_;
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_ = input(cha, slc, 0, phs, rep, set, ave)->attrib_;
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_T2STARMAP);
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T2STARMAP);
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_SCALE_RATIO, t2_star_scaling_factor.value());
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_WINDOWCENTER, (long)(t2_star_window_center.value()*t2_star_scaling_factor.value()));
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_WINDOWWIDTH, (long)(t2_star_window_width.value()*t2_star_scaling_factor.value()));
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_COLORMAP, t2_star_color_map.value().c_str());
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T2STARMAP);
+
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGECOMMENT, "GT");
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, GADGETRON_IMAGE_T2STARMAP);
+                            t2s_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, unitStr_T2StarMap.c_str());
+
+                            field_map(cha, slc, 0, phs, rep, set, ave) = &fieldMapContainer(set, 0);
+                            field_map(cha, slc, 0, phs, rep, set, ave)->header_ = input(cha, slc, 0, phs, rep, set, ave)->header_;
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_ = input(cha, slc, 0, phs, rep, set, ave)->attrib_;
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_FREQMAP);
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_FREQMAP);
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_SCALE_RATIO, field_map_scaling_factor.value());
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_SCALE_OFFSET, field_map_offset.value());
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_WINDOWCENTER, (long)(field_map_window_center.value()*field_map_scaling_factor.value()));
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_WINDOWWIDTH, (long)(field_map_window_width.value()*field_map_scaling_factor.value()));
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGE_COLORMAP, field_map_color_map.value().c_str());
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_FREQMAP);
+
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.set(GADGETRON_IMAGECOMMENT, "GT");
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, GADGETRON_IMAGE_FREQMAP);
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, unitStr_FieldMap.c_str());
+                            field_map(cha, slc, 0, phs, rep, set, ave)->attrib_.append(GADGETRON_IMAGECOMMENT, offsetStr_FieldMap.c_str());
+                        }
+
+                        waterContainer.delete_data_on_destruct(false);
+                        fatContainer.delete_data_on_destruct(false);
+                        t2StarMapContainer.delete_data_on_destruct(false);
+                        fieldMapContainer.delete_data_on_destruct(false);
+                    }
+                }
+            }
+        }
+    }
 
     return GADGET_OK;
 }
@@ -200,32 +289,31 @@ int FatWaterSeparationGadget::perform_fat_water(ImageContainerType& input, Image
 {
     try
     {
-        /*magT2W.clear();
-        magT2WNoSCC.clear();
-        magPD.clear();
+        std::vector<size_t> cols = input.cols();
+        std::vector<size_t> cols_res(cols.size(), 1); // every row has one image as output
 
-        if (gmap.dimensions_equal(input(0, 0)))
+        water.create(cols_res, true);
+        fat.create(cols_res, true);
+        t2s_map.create(cols_res, true);
+        field_map.create(cols_res, true);
+
+        // for every row, call up fat water seperation on the multi-echo images
+        size_t r, c;
+        for (r = 0; r < cols.size(); r++)
         {
-            psir_reconer_.gmap_ = gmap;
+            water(r, 0) = input(r, 0);
+            fat(r, 0) = input(r, 0);
+            t2s_map(r, 0) = input(r, 0);
+            field_map(r, 0) = input(r, 0);
         }
-        else
-        {
-            psir_reconer_.gmap_.clear();
-        }
-
-        GADGET_CHECK_RETURN_FALSE(psir_reconer_.performPSIRRecon(input));
-
-        GADGET_CHECK_RETURN_FALSE(magT2W.copyFrom(psir_reconer_.magIR_));
-        GADGET_CHECK_RETURN_FALSE(magT2WNoSCC.copyFrom(psir_reconer_.magIR_without_scc_));
-        GADGET_CHECK_RETURN_FALSE(magPD.copyFrom(psir_reconer_.magPD_));*/
     }
     catch(...)
     {
         GERROR_STREAM("Errors happened in FatWaterSeparationGadget::perform_fat_water(ImageContainerType& input, ...) ... ");
-        return false;
+        return GADGET_FAIL;
     }
 
-    return true;
+    return GADGET_OK;
 }
 
 int FatWaterSeparationGadget::close(unsigned long flags)

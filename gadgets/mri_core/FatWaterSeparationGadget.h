@@ -43,11 +43,11 @@ protected:
     GADGET_PROPERTY(field_map_color_map, std::string, "Color map for field map", "GadgetronColorMap.pal");
     GADGET_PROPERTY(field_map_scaling_factor, double, "Scaling factor for field map map", 10.0);
     GADGET_PROPERTY(field_map_offset, double, "Offset for field map map", 4096);
-    GADGET_PROPERTY(field_map_star_window_center, double, "Window center in Hz", 25.0);
-    GADGET_PROPERTY(field_map_star_window_width, double, "Window width in Hz", 50.0);
+    GADGET_PROPERTY(field_map_window_center, double, "Window center in Hz", 25.0);
+    GADGET_PROPERTY(field_map_window_width, double, "Window width in Hz", 50.0);
 
     virtual int process_config(ACE_Message_Block* mb);
-    virtual int processImageBuffer(ImageBufferType& ori);
+    virtual int process_image_buffer(ImageBufferType& ori);
 
     /// perform the fat water separation
     int perform_fat_water(ImageBufferType& input, ImageBufferType& water, ImageBufferType& fat, ImageBufferType& t2s_map, ImageBufferType& field_map);

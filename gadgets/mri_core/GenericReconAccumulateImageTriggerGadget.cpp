@@ -736,10 +736,10 @@ namespace Gadgetron {
                             storedImage->create(dimIm);
 
                             ValueType* pIm = storedImage->begin();
-                            size_t N = storedImage->get_number_of_elements();
+                            size_t numPixel = storedImage->get_number_of_elements();
 
                             const std::complex<float>* pData = &(img.data_(0, 0, 0, cha, n, s, slc));
-                            for (size_t ii = 0; ii < N; ii++)
+                            for (size_t ii = 0; ii < numPixel; ii++)
                             {
                                 pIm[ii] = (ValueType)(pData[ii]);
                             }

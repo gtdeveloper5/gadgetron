@@ -37,10 +37,11 @@ public:
 
     typedef std::complex<T> ValueType;
     typedef hoNDImage<ValueType, D> ImageType;
-    typedef hoNDImage<T, D> ImageMagType;
-    typedef hoNDArray<T> ImgArrayType;
+    typedef hoNDArray<ValueType> ImgArrayType;
     typedef hoNDObjectArray<ImageType> ImageBufferType;
     typedef hoNDImageContainer2D<ImageType> ImageContainerType;
+
+    typedef hoNDImage<T, D> ImageMagType;
     typedef hoNDImageContainer2D<ImageMagType> ImageContainerMagType;
 
     typedef Gadget1< ImageBufferType > BaseClass;
@@ -94,8 +95,52 @@ protected:
     std::vector< ImageType > gfactor_buf_;
 
     // --------------------------------------------------
-    // variables for debug and timing
+    // function and variables for debug and timing
     // --------------------------------------------------
+
+    void export_image_container(const hoNDImageContainer2D< hoNDImage<std::complex<T>, D> >& input, const std::string& name)
+    {
+        if (!this->debug_folder_full_path_.empty())
+        {
+            size_t R = input.rows();
+
+            size_t r;
+
+            hoNDArray<ValueType> outArray;
+
+            for (r = 0; r<R; r++)
+            {
+                input.to_NDArray(r, outArray);
+
+                std::ostringstream ostr;
+                ostr << name << "_" << r;
+
+                if (!this->debug_folder_full_path_.empty()) gt_exporter_.exportArrayComplex(outArray, this->debug_folder_full_path_ + ostr.str());
+            }
+        }
+    }
+
+    void export_image_container(const hoNDImageContainer2D< hoNDImage<T, D> >& input, const std::string& name)
+    {
+        if (!this->debug_folder_full_path_.empty())
+        {
+            size_t R = input.rows();
+
+            size_t r;
+
+            hoNDArray<T> outArray;
+
+            for (r = 0; r<R; r++)
+            {
+                input.to_NDArray(r, outArray);
+
+                std::ostringstream ostr;
+                ostr << name << "_" << r;
+
+                if (!this->debug_folder_full_path_.empty()) gt_exporter_.exportArray(outArray, this->debug_folder_full_path_ + ostr.str());
+            }
+        }
+    }
 
     // clock for timing
     Gadgetron::GadgetronTimer gt_timer_local_;
