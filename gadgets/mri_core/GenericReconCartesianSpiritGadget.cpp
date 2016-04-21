@@ -20,24 +20,6 @@ namespace Gadgetron {
         GADGET_CHECK_RETURN(BaseClass::process_config(mb) == GADGET_OK, GADGET_FAIL);
 
         // -------------------------------------------------
-
-        ISMRMRD::IsmrmrdHeader h;
-        try
-        {
-            deserialize(mb->rd_ptr(), h);
-        }
-        catch (...)
-        {
-            GDEBUG("Error parsing ISMRMRD Header");
-        }
-
-        size_t NE = h.encoding.size();
-        num_encoding_spaces_ = NE;
-        GDEBUG_CONDITION_STREAM(verbose.value(), "Number of encoding spaces: " << NE);
-
-        recon_obj_.resize(NE);
-
-        // -------------------------------------------------
         // check the parameters
         if(this->spirit_iter_max.value()==0)
         {
@@ -110,11 +92,11 @@ namespace Gadgetron {
             GDEBUG_CONDITION_STREAM(verbose.value(), "Calling " << process_called_times_ << " , encoding space : " << e);
             GDEBUG_CONDITION_STREAM(verbose.value(), "======================================================================");
 
-            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].data_.data_, debug_folder_full_path_ + "data" + os.str()); }
+            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].data_.data_, debug_folder_full_path_ + "data" + os.str()); }
 
             if (recon_bit_->rbit_[e].ref_)
             {
-                if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].ref_->data_, debug_folder_full_path_ + "ref" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].ref_->data_, debug_folder_full_path_ + "ref" + os.str()); }
 
                 // after this step, the recon_obj_[e].ref_calib_ and recon_obj_[e].ref_coil_map_ are set
 
@@ -122,8 +104,8 @@ namespace Gadgetron {
                 this->make_ref_coil_map(*recon_bit_->rbit_[e].ref_,*recon_bit_->rbit_[e].data_.data_.get_dimensions(), recon_obj_[e].ref_calib_, recon_obj_[e].ref_coil_map_, e);
                 if (perform_timing.value()) { gt_timer_.stop(); }
 
-                if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].ref_calib_, debug_folder_full_path_ + "ref_calib" + os.str()); }
-                if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].ref_coil_map_, debug_folder_full_path_ + "ref_coil_map" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].ref_calib_, debug_folder_full_path_ + "ref_calib" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].ref_coil_map_, debug_folder_full_path_ + "ref_coil_map" + os.str()); }
 
                 // ----------------------------------------------------------
 
@@ -132,7 +114,7 @@ namespace Gadgetron {
                 this->perform_coil_map_estimation(recon_obj_[e].ref_coil_map_, recon_obj_[e].coil_map_, e);
                 if (perform_timing.value()) { gt_timer_.stop(); }
 
-                if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].coil_map_, debug_folder_full_path_ + "coil_map_" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].coil_map_, debug_folder_full_path_ + "coil_map_" + os.str()); }
 
                 // ---------------------------------------------------------------
 
@@ -148,7 +130,7 @@ namespace Gadgetron {
 
             if (recon_bit_->rbit_[e].data_.data_.get_number_of_elements() > 0)
             {
-                if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].data_.data_, debug_folder_full_path_ + "data_before_unwrapping" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit_->rbit_[e].data_.data_, debug_folder_full_path_ + "data_before_unwrapping" + os.str()); }
 
                 if (perform_timing.value()) { gt_timer_.start("GenericReconCartesianSpiritGadget::perform_unwrapping"); }
                 this->perform_unwrapping(recon_bit_->rbit_[e], recon_obj_[e], e);
@@ -162,7 +144,7 @@ namespace Gadgetron {
 
                 // ---------------------------------------------------------------
 
-                if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].recon_res_.data_, debug_folder_full_path_ + "recon_res" + os.str()); }
+                // if (!debug_folder_full_path_.empty()) { this->gt_exporter_.exportArrayComplex(recon_obj_[e].recon_res_.data_, debug_folder_full_path_ + "recon_res" + os.str()); }
 
                 if (perform_timing.value()) { gt_timer_.start("GenericReconCartesianSpiritGadget::send_out_image_array"); }
                 this->send_out_image_array(recon_bit_->rbit_[e], recon_obj_[e].recon_res_, e, image_series.value() + ((int)e + 1), GADGETRON_IMAGE_REGULAR);
@@ -209,6 +191,10 @@ namespace Gadgetron {
                 size_t kE1 = spirit_kSize_E1.value();
                 size_t kE2 = spirit_kSize_E2.value();
 
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "spirit, kRO : " << kRO);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "spirit, kE1 : " << kE1);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "spirit, kE2 : " << kE2);
+
                 size_t convKRO = 2 * kRO - 1;
                 size_t convKE1 = 2 * kE1 - 1;
                 size_t convKE2 = 2 * kE2 - 1;
@@ -232,6 +218,9 @@ namespace Gadgetron {
 
                 double reg_lamda = this->spirit_reg_lamda.value();
                 double over_determine_ratio = this->spirit_calib_over_determine_ratio.value();
+
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "spirit, reg_lamda : " << reg_lamda);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "spirit, over_determine_ratio : " << over_determine_ratio);
 
                 long long ii;
 
@@ -282,6 +271,354 @@ namespace Gadgetron {
         }
     }
 
+    void GenericReconCartesianSpiritGadget::perform_unwrapping(IsmrmrdReconBit& recon_bit, ReconObjType& recon_obj, size_t e)
+    {
+        try
+        {
+            typedef std::complex<float> T;
+
+            size_t RO = recon_bit.data_.data_.get_size(0);
+            size_t E1 = recon_bit.data_.data_.get_size(1);
+            size_t E2 = recon_bit.data_.data_.get_size(2);
+            size_t dstCHA = recon_bit.data_.data_.get_size(3);
+            size_t N = recon_bit.data_.data_.get_size(4);
+            size_t S = recon_bit.data_.data_.get_size(5);
+            size_t SLC = recon_bit.data_.data_.get_size(6);
+
+            hoNDArray< std::complex<float> >& src = recon_obj.ref_calib_;
+
+            size_t ref_RO = src.get_size(0);
+            size_t ref_E1 = src.get_size(1);
+            size_t ref_E2 = src.get_size(2);
+            size_t srcCHA = src.get_size(3);
+            size_t ref_N = src.get_size(4);
+            size_t ref_S = src.get_size(5);
+            size_t ref_SLC = src.get_size(6);
+
+            size_t convkRO = recon_obj.kernel_.get_size(0);
+            size_t convkE1 = recon_obj.kernel_.get_size(1);
+            size_t convkE2 = recon_obj.kernel_.get_size(2);
+
+            recon_obj.recon_res_.data_.create(RO, E1, E2, 1, N, S, SLC);
+            Gadgetron::clear(recon_obj.recon_res_.data_);
+            recon_obj.full_kspace_ = recon_bit.data_.data_;
+            Gadgetron::clear(recon_obj.full_kspace_);
+
+            std::stringstream os;
+            os << "encoding_" << e;
+            std::string suffix = os.str();
+
+            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit.data_.data_, debug_folder_full_path_ + "data_src_" + suffix); }
+
+            // ------------------------------------------------------------------
+            // compute effective acceleration factor
+            // ------------------------------------------------------------------
+            size_t e1, e2, n, s;
+            size_t num_readout_lines = 0;
+            for (s = 0; s < S; s++)
+            {
+                for (n = 0; n < N; n++)
+                {
+                    for (e2 = 0; e2 < E2; e2++)
+                    {
+                        for (e1 = 0; e1 < E1; e1++)
+                        {
+                            if (std::abs(recon_bit.data_.data_(RO / 2, e1, e2, 0, n)) > 0)
+                            {
+                                num_readout_lines++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (num_readout_lines > 0)
+            {
+                double lenRO = RO;
+
+                size_t start_RO = recon_bit.data_.sampling_.sampling_limits_[0].min_;
+                size_t end_RO = recon_bit.data_.sampling_.sampling_limits_[0].max_;
+
+                if ( (start_RO>=0 && start_RO<RO) && (end_RO>=0 && end_RO<RO) && (end_RO - start_RO + 1 < RO) )
+                {
+                    lenRO = (end_RO - start_RO + 1);
+                }
+                if (this->verbose.value()) GDEBUG_STREAM("length for RO : " << lenRO << " - " << lenRO / RO);
+
+                double effectiveAcceFactor = (double)(S*N*E1*E2) / (num_readout_lines);
+                if (this->verbose.value()) GDEBUG_STREAM("effectiveAcceFactor : " << effectiveAcceFactor);
+
+                double ROScalingFactor = (double)RO / (double)lenRO;
+
+                float fftCompensationRatio = (float)(std::sqrt(ROScalingFactor*effectiveAcceFactor));
+
+                if (this->verbose.value()) GDEBUG_STREAM("fftCompensationRatio : " << fftCompensationRatio);
+
+                Gadgetron::scal(fftCompensationRatio, recon_bit.data_.data_);
+            }
+            else
+            {
+                GWARN_STREAM("cannot find any sampled lines ... ");
+            }
+
+            Gadgetron::GadgetronTimer timer(false);
+
+            // ------------------------------------------------------------------
+            // compute the reconstruction
+            // ------------------------------------------------------------------
+            long long num = N*S*SLC;
+            long long ii;
+
+            if(this->acceFactorE1_[e]<=1 && this->acceFactorE2_[e]<=1)
+            {
+                recon_obj.full_kspace_ = recon_bit.data_.data_;
+            }
+            else
+            {
+                hoNDArray< std::complex<float> >& kspace = recon_bit.data_.data_;
+                hoNDArray< std::complex<float> >& res = recon_obj.full_kspace_;
+                size_t iter_max = this->spirit_iter_max.value();
+                double iter_thres = this->spirit_iter_thres.value();
+                bool print_iter = this->spirit_print_iter.value();
+
+                size_t RO_recon_size = 32; // every 32 images were computed together
+
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "iter_max : " << iter_max);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "iter_thres : " << iter_thres);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "print_iter : " << print_iter);
+                GDEBUG_CONDITION_STREAM(this->verbose.value(), "RO_recon_size : " << RO_recon_size);
+
+                if (E2 > 1)
+                {
+                    // 3D recon
+
+                    hoNDArray<T> kspaceIfftRO(RO, E1, E2, srcCHA);
+                    hoNDArray<T> kspaceIfftROPermuted(E1, E2, srcCHA, RO);
+                    hoNDArray<T> kIm(E1, E2, srcCHA, dstCHA, RO_recon_size, 1, 1);
+                    hoNDArray<T> res_ro_recon(E1, E2, 1, dstCHA, RO_recon_size, 1, 1);
+
+                    for (ii = 0; ii < num; ii++)
+                    {
+                        size_t slc = ii / (N*S);
+                        size_t s = (ii - slc*N*S) / N;
+                        size_t n = ii - slc*N*S - s*N;
+
+                        GDEBUG_CONDITION_STREAM(this->verbose.value(), "3D recon, [n s slc] : [" << n << " " << s << " " << slc << "]");
+
+                        std::stringstream os;
+                        os << "encoding_" << e << "_n" << n << "_s" << s << "_slc" << slc;
+                        std::string suffix_3D = os.str();
+
+                        size_t ro, e1, e2, scha, dcha;
+
+                        // ------------------------------------------------------
+                        // check whether the kspace is undersampled
+                        // ------------------------------------------------------
+                        bool undersampled = false;
+                        for (e2= 0; e2< E2; e2++)
+                        {
+                            for (e1 = 0; e1 < E1; e1++)
+                            {
+                                if ((std::abs(kspace(RO / 2, e1, e2, srcCHA - 1, n, s, slc)) == 0)
+                                    && (std::abs(kspace(RO / 2, e1, e2, 0, n, s, slc)) == 0))
+                                {
+                                    undersampled = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        size_t kerN = (n<ref_N) ? n : ref_N-1;
+                        size_t kerS = (s<ref_S) ? s : ref_S - 1;
+
+                        // ---------------------------------------------------------------------
+                        // permute the kspace
+                        // ---------------------------------------------------------------------
+                        std::complex<float>* pKSpace = &(kspace(0, 0, 0, 0, n, s, slc));
+                        hoNDArray< std::complex<float> > kspace3D(RO, E1, E2, srcCHA, pKSpace);
+
+                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, ifft1c along RO ... ");
+                        Gadgetron::hoNDFFT<float>::instance()->ifft1c(kspace3D, kspaceIfftRO);
+                        if (this->perform_timing.value()) timer.stop();
+                        // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspaceIfftRO, debug_folder_full_path_ + "kspaceIfftRO_" + suffix_3D); }
+
+                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, permute along RO ... ");
+                        std::complex<float>* pKspaceRO = kspaceIfftRO.begin();
+                        std::complex<float>* pKspacePermutedRO = kspaceIfftROPermuted.begin();
+                        for (scha = 0; scha < srcCHA; scha++)
+                        {
+                            for (e2 = 0; e2 < E2; e2++)
+                            {
+                                for (e1 = 0; e1 < E1; e1++)
+                                {
+                                    size_t ind = e1*RO + e2*RO*E1 + scha*RO*E1*E2;
+                                    size_t ind_dst = e1 + e2*E1 + scha*E1*E2;
+
+                                    for (ro = 0; ro < RO; ro++)
+                                    {
+                                        pKspacePermutedRO[ind_dst + ro*E1*E2*srcCHA] = pKspaceRO[ro + ind];
+                                    }
+                                }
+                            }
+                        }
+                        if (this->perform_timing.value()) timer.stop();
+                        // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspaceIfftROPermuted, debug_folder_full_path_ + "kspaceIfftROPermuted_" + suffix_3D); }
+
+                        // ---------------------------------------------------------------------
+                        // get the kspace for recon
+                        // ---------------------------------------------------------------------
+                        hoNDArray< std::complex<float> > kspace3D_recon(E1, E2, 1, srcCHA, RO, kspaceIfftROPermuted.begin());
+
+                        // ---------------------------------------------------------------------
+                        // get spirit kernel for recon
+                        // ---------------------------------------------------------------------
+                        std::complex<float>* pKer = &(recon_obj.kernelIm3D_(0, 0, 0, 0, 0, kerN, kerS, slc));
+                        hoNDArray< std::complex<float> > kIm3D_recon(convkE1, convkE2, srcCHA, dstCHA, RO, pKer);
+
+                        // ---------------------------------------------------------------------
+                        // get the array to store results
+                        // ---------------------------------------------------------------------
+                        std::complex<float>* pRes = &(res(0, 0, 0, 0, n, s, slc));
+                        hoNDArray< std::complex<float> > res_recon(RO, E1, E2, dstCHA, pRes);
+
+                        // ---------------------------------------------------------------------
+                        // perform recon along RO
+                        // ---------------------------------------------------------------------
+                        size_t start_ro = 0;
+                        for (start_ro = 0; start_ro < RO; start_ro += RO_recon_size)
+                        {
+                            size_t end_ro = start_ro + RO_recon_size - 1;
+                            if (end_ro > RO) end_ro = RO - 1;
+                            size_t num = end_ro - start_ro + 1;
+
+                            GDEBUG_CONDITION_STREAM(this->verbose.value(), "3D recon, start_ro - end_ro : " << start_ro << " - " << end_ro);
+
+                            hoNDArray< std::complex<float> > kspace3D_recon_ro(E1, E2, 1, srcCHA, num, 1, 1, kspace3D_recon.begin() + start_ro*E1*E2*srcCHA);
+                            hoNDArray< std::complex<float> > kIm3D_recon_ro(convkE1, convkE2, srcCHA, dstCHA, num, 1, 1, kIm3D_recon.begin() + start_ro*convkE1*convkE2*srcCHA*dstCHA);
+
+                            std::stringstream os_ro;
+                            os_ro << "encoding_" << e << "_n" << n << "_s" << s << "_slc" << slc << "_ro" << start_ro << "_" << end_ro;
+                            std::string suffix_3D_ro = os_ro.str();
+
+                            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspace3D_recon_ro, debug_folder_full_path_ + "kspace3D_recon_ro_" + suffix_3D_ro); }
+                            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm3D_recon_ro, debug_folder_full_path_ + "kIm3D_recon_ro_" + suffix_3D_ro); }
+
+                            if(num==RO_recon_size)
+                            {
+                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, image domain kernel along E1 and E2 ... ");
+                                Gadgetron::spirit3d_image_domain_kernel(kIm3D_recon_ro, E1, E2, kIm);
+                                if (this->perform_timing.value()) timer.stop();
+                                // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm, debug_folder_full_path_ + "kIm_" + suffix_3D_ro); }
+
+                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, linear unwrapping ... ");
+                                this->perform_spirit_unwrapping(kspace3D_recon_ro, kIm, res_ro_recon);
+                                if (this->perform_timing.value()) timer.stop();
+                            }
+                            else
+                            {
+                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, image domain kernel along E1 and E2, last ... ");
+                                hoNDArray< std::complex<float> > kIm_last(E1, E2, srcCHA, dstCHA, num);
+                                Gadgetron::spirit3d_image_domain_kernel(kIm3D_recon_ro, E1, E2, kIm_last);
+                                if (this->perform_timing.value()) timer.stop();
+                                // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm_last, debug_folder_full_path_ + "kIm_last_" + suffix_3D_ro); }
+
+                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, linear unwrapping ... ");
+                                this->perform_spirit_unwrapping(kspace3D_recon_ro, kIm_last, res_ro_recon);
+                                if (this->perform_timing.value()) timer.stop();
+                            }
+
+                            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res_ro_recon, debug_folder_full_path_ + "res_ro_recon_" + suffix_3D_ro); }
+
+                            // ---------------------------------------------------------------------
+                            // copy the recon results
+                            // ---------------------------------------------------------------------
+                            std::complex<float>* pResRO = res_ro_recon.begin();
+                            for (dcha = 0; dcha < dstCHA; dcha++)
+                            {
+                                for (e2 = 0; e2 < E2; e2++)
+                                {
+                                    for (e1 = 0; e1 < E1; e1++)
+                                    {
+                                        for (ro = 0; ro < num; ro++)
+                                        {
+                                            pRes[ro + start_ro + e1*RO + e2*RO*E1 + dcha*RO*E1*E2] = pResRO[e1 + e2*E1 + dcha*E1*E2 + ro*E1*E2*dstCHA];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ---------------------------------------------------------------------
+                        // go back to kspace for RO
+                        // ---------------------------------------------------------------------
+                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, fft along RO for res ... ");
+                        Gadgetron::hoNDFFT<float>::instance()->fft1c(res_recon);
+                        if (this->perform_timing.value()) timer.stop();
+                        // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res_recon, debug_folder_full_path_ + "res_recon_" + suffix_3D); }
+                    }
+                }
+                else
+                {
+                    if (this->perform_timing.value()) timer.start("SPIRIT 2D, linear unwrapping ... ");
+                    this->perform_spirit_unwrapping(kspace, recon_obj.kernelIm2D_, res);
+                    if (this->perform_timing.value()) timer.stop();
+
+                    // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res, debug_folder_full_path_ + "res_spirit_2D_" + suffix); }
+                }
+            }
+
+            // ---------------------------------------------------------------------
+            // compute coil combined images
+            // ---------------------------------------------------------------------
+            if (this->perform_timing.value()) timer.start("SPIRIT linear, coil combination ... ");
+
+            if (E2>1)
+            {
+                Gadgetron::hoNDFFT<float>::instance()->ifft3c(recon_obj.full_kspace_, complex_im_recon_buf_);
+            }
+            else
+            {
+                Gadgetron::hoNDFFT<float>::instance()->ifft2c(recon_obj.full_kspace_, complex_im_recon_buf_);
+            }
+
+            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(complex_im_recon_buf_, debug_folder_full_path_ + "complex_im_recon_buf_" + suffix); }
+
+#pragma omp parallel default(none) private(ii) shared(num, N, S, recon_obj, RO, E1, E2, dstCHA) if(num>1)
+            {
+                hoNDArray< std::complex<float> > complexImBuf(RO, E1, E2, dstCHA);
+
+#pragma omp for 
+                for (ii = 0; ii < num; ii++)
+                {
+                    size_t slc = ii / (N*S);
+                    size_t s = (ii - slc*N*S) / N;
+                    size_t n = ii - slc*N*S - s*N;
+
+                    size_t coilMapN = n;
+                    if (coilMapN >= recon_obj.coil_map_.get_size(5)) coilMapN = recon_obj.coil_map_.get_size(5) - 1;
+
+                    size_t coilMapS = s;
+                    if (coilMapS >= recon_obj.coil_map_.get_size(6)) coilMapS = recon_obj.coil_map_.get_size(6) - 1;
+
+                    hoNDArray< std::complex<float> > complexIm(RO, E1, E2, dstCHA, &(complex_im_recon_buf_(0, 0, 0, 0, n, s, slc)));
+                    hoNDArray< std::complex<float> > coilMap(RO, E1, E2, dstCHA, &(recon_obj.coil_map_(0, 0, 0, 0, coilMapN, coilMapS, slc)));
+                    hoNDArray< std::complex<float> > combined(RO, E1, E2, 1, &(recon_obj.recon_res_.data_(0, 0, 0, 0, n, s, slc)));
+
+                    Gadgetron::multiplyConj(complexIm, coilMap, complexImBuf);
+                    Gadgetron::sum_over_dimension(complexImBuf, combined, 3);
+                }
+            }
+
+            if (this->perform_timing.value()) timer.stop();
+
+            // if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_obj.recon_res_.data_, debug_folder_full_path_ + "unwrappedIm_" + suffix); }
+        }
+        catch (...)
+        {
+            GADGET_THROW("Errors happened in GenericReconCartesianSpiritGadget::perform_unwrapping(...) ... ");
+        }
+    }
+
     void GenericReconCartesianSpiritGadget::perform_spirit_unwrapping(hoNDArray< std::complex<float> >& kspace, hoNDArray< std::complex<float> >& kerIm, hoNDArray< std::complex<float> >& res)
     {
         try
@@ -311,7 +648,12 @@ namespace Gadgetron {
             kspace_Shifted = kspace;
             Gadgetron::hoNDFFT<float>::instance()->ifftshift2D(kspace, kspace_Shifted);
 
-#pragma omp parallel default(none) private(ii) shared(num, N, S, RO, E1, CHA, ref_N, ref_S, kspace, res, kspace_Shifted, ker_Shifted, iter_max, iter_thres, print_iter) if(num>1)
+#ifdef USE_OMP
+            int numThreads = (int)num;
+            if (numThreads > omp_get_num_procs()) numThreads = omp_get_num_procs();
+#endif // USE_OMP
+
+#pragma omp parallel default(none) private(ii) shared(num, N, S, RO, E1, CHA, ref_N, ref_S, kspace, res, kspace_Shifted, ker_Shifted, iter_max, iter_thres, print_iter) num_threads(numThreads) if(num>1) 
             {
                 std::vector<size_t> dim(3, 1);
                 dim[0] = RO;
@@ -378,10 +720,7 @@ namespace Gadgetron {
 
                     if (ref_N == 1 && ref_S == 1)
                     {
-                        // compute rhs
                         spirit.compute_righ_hand_side(*acq, b);
-
-                        // solve
                         cgSolver.solve(&unwarppedKSpace, &b);
                     }
                     else
@@ -390,16 +729,12 @@ namespace Gadgetron {
                         boost::shared_ptr<hoNDArray< std::complex<float> > > ker(new hoNDArray< std::complex<float> >(RO, E1, CHA, CHA, pKer));
                         spirit.set_forward_kernel(*ker, false);
 
-                        // compute rhs
                         spirit.compute_righ_hand_side(*acq, b);
-
-                        // solve
                         cgSolver.solve(&unwarppedKSpace, &b);
                     }
 
                     // restore the acquired points
                     spirit.restore_acquired_kspace(*acq, unwarppedKSpace);
-
                     memcpy(pRes, unwarppedKSpace.begin(), unwarppedKSpace.get_number_of_bytes());
                 }
             }
@@ -410,347 +745,6 @@ namespace Gadgetron {
         catch (...)
         {
             GADGET_THROW("Errors happened in GenericReconCartesianSpiritGadget::perform_spirit_unwrapping(...) ... ");
-        }
-    }
-
-    void GenericReconCartesianSpiritGadget::perform_unwrapping(IsmrmrdReconBit& recon_bit, ReconObjType& recon_obj, size_t e)
-    {
-        try
-        {
-            typedef std::complex<float> T;
-
-            size_t RO = recon_bit.data_.data_.get_size(0);
-            size_t E1 = recon_bit.data_.data_.get_size(1);
-            size_t E2 = recon_bit.data_.data_.get_size(2);
-            size_t dstCHA = recon_bit.data_.data_.get_size(3);
-            size_t N = recon_bit.data_.data_.get_size(4);
-            size_t S = recon_bit.data_.data_.get_size(5);
-            size_t SLC = recon_bit.data_.data_.get_size(6);
-
-            hoNDArray< std::complex<float> >& src = recon_obj.ref_calib_;
-
-            size_t ref_RO = src.get_size(0);
-            size_t ref_E1 = src.get_size(1);
-            size_t ref_E2 = src.get_size(2);
-            size_t srcCHA = src.get_size(3);
-            size_t ref_N = src.get_size(4);
-            size_t ref_S = src.get_size(5);
-            size_t ref_SLC = src.get_size(6);
-
-            size_t convkRO = recon_obj.kernel_.get_size(0);
-            size_t convkE1 = recon_obj.kernel_.get_size(1);
-            size_t convkE2 = recon_obj.kernel_.get_size(2);
-
-            recon_obj.recon_res_.data_.create(RO, E1, E2, 1, N, S, SLC);
-            Gadgetron::clear(recon_obj.recon_res_.data_);
-            recon_obj.full_kspace_ = recon_bit.data_.data_;
-            Gadgetron::clear(recon_obj.full_kspace_);
-
-            std::stringstream os;
-            os << "encoding_" << e;
-            std::string suffix = os.str();
-
-            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(recon_bit.data_.data_, debug_folder_full_path_ + "data_src_" + suffix); }
-
-            // SNR unit scaling
-            size_t e1, e2, n, s;
-            size_t num_readout_lines = 0;
-            for (s = 0; s < S; s++)
-            {
-                for (n = 0; n < N; n++)
-                {
-                    for (e2 = 0; e2 < E2; e2++)
-                    {
-                        for (e1 = 0; e1 < E1; e1++)
-                        {
-                            if (std::abs(recon_bit.data_.data_(RO / 2, e1, e2, 0, n)) > 0)
-                            {
-                                num_readout_lines++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (num_readout_lines > 0)
-            {
-                double lenRO = RO;
-
-                size_t start_RO = recon_bit.data_.sampling_.sampling_limits_[0].min_;
-                size_t end_RO = recon_bit.data_.sampling_.sampling_limits_[0].max_;
-
-                if ( (start_RO>=0 && start_RO<RO) && (end_RO>=0 && end_RO<RO) && (end_RO - start_RO + 1 < RO) )
-                {
-                    lenRO = (end_RO - start_RO + 1);
-                }
-                if (this->verbose.value()) GDEBUG_STREAM("length for RO : " << lenRO << " - " << lenRO / RO);
-
-                double effectiveAcceFactor = (double)(S*N*E1*E2) / (num_readout_lines);
-                if (this->verbose.value()) GDEBUG_STREAM("effectiveAcceFactor : " << effectiveAcceFactor);
-
-                double ROScalingFactor = (double)RO / (double)lenRO;
-
-                float fftCompensationRatio = (float)(std::sqrt(ROScalingFactor*effectiveAcceFactor));
-
-                if (this->verbose.value()) GDEBUG_STREAM("fftCompensationRatio : " << fftCompensationRatio);
-
-                Gadgetron::scal(fftCompensationRatio, recon_bit.data_.data_);
-            }
-            else
-            {
-                GWARN_STREAM("cannot find any sampled lines ... ");
-            }
-
-            Gadgetron::GadgetronTimer timer(false);
-
-            // unwrapping
-            long long num = N*S*SLC;
-            long long ii;
-
-            if(this->acceFactorE1_[e]<=1 && this->acceFactorE2_[e]<=1)
-            {
-                recon_obj.full_kspace_ = recon_bit.data_.data_;
-            }
-            else
-            {
-                hoNDArray< std::complex<float> >& kspace = recon_bit.data_.data_;
-                hoNDArray< std::complex<float> >& res = recon_obj.full_kspace_;
-                size_t iter_max = this->spirit_iter_max.value();
-                double iter_thres = this->spirit_iter_thres.value();
-                bool print_iter = this->spirit_print_iter.value();
-
-                size_t RO_recon_size = 32; // every 32 images were computed together
-
-                GDEBUG_CONDITION_STREAM(this->verbose.value(), "iter_max : " << iter_max);
-                GDEBUG_CONDITION_STREAM(this->verbose.value(), "iter_thres : " << iter_thres);
-                GDEBUG_CONDITION_STREAM(this->verbose.value(), "print_iter : " << print_iter);
-                GDEBUG_CONDITION_STREAM(this->verbose.value(), "RO_recon_size : " << RO_recon_size);
-
-                if (E2 > 1)
-                {
-                    // kernelIm3D : [convE1 convE2 srcCHA dstCHA RO ref_N ref_S SLC]
-
-                    hoNDArray<T> kspaceIfftRO(RO, E1, E2, srcCHA);
-                    hoNDArray<T> kspaceIfftROPermuted(E1, E2, srcCHA, RO);
-                    hoNDArray<T> kIm(E1, E2, srcCHA, dstCHA, RO_recon_size, 1, 1);
-                    hoNDArray<T> res_ro_recon(E1, E2, 1, dstCHA, RO_recon_size, 1, 1);
-
-                    for (ii = 0; ii < num; ii++)
-                    {
-                        size_t slc = ii / (N*S);
-                        size_t s = (ii - slc*N*S) / N;
-                        size_t n = ii - slc*N*S - s*N;
-
-                        GDEBUG_CONDITION_STREAM(this->verbose.value(), "3D recon, [n s slc] : [" << n << " " << s << " " << slc << "]");
-
-                        std::stringstream os;
-                        os << "encoding_" << e << "_n" << n << "_s" << s << "_slc" << slc;
-                        std::string suffix_3D = os.str();
-
-                        size_t ro, e1, e2, scha, dcha;
-
-                        // ------------------------------------------------------
-                        // check whether the kspace is undersampled
-                        // ------------------------------------------------------
-                        bool undersampled = false;
-                        for (e2= 0; e2< E2; e2++)
-                        {
-                            for (e1 = 0; e1 < E1; e1++)
-                            {
-                                if ((std::abs(kspace(RO / 2, e1, e2, srcCHA - 1, n, s, slc)) == 0)
-                                    && (std::abs(kspace(RO / 2, e1, e2, 0, n, s, slc)) == 0))
-                                {
-                                    undersampled = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        size_t kerN = (n<ref_N) ? n : ref_N-1;
-                        size_t kerS = (s<ref_S) ? s : ref_S - 1;
-
-                        // ---------------------------------------------------------------------
-                        // permute the kspace
-                        // ---------------------------------------------------------------------
-                        std::complex<float>* pKSpace = &(kspace(0, 0, 0, 0, n, s, slc));
-                        hoNDArray< std::complex<float> > kspace3D(RO, E1, E2, srcCHA, pKSpace);
-
-                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, ifft1c along RO ... ");
-                        Gadgetron::hoNDFFT<float>::instance()->ifft1c(kspace3D, kspaceIfftRO);
-                        if (this->perform_timing.value()) timer.stop();
-                        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspaceIfftRO, debug_folder_full_path_ + "kspaceIfftRO_" + suffix_3D); }
-
-                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, permute along RO ... ");
-                        std::complex<float>* pKspaceRO = kspaceIfftRO.begin();
-                        std::complex<float>* pKspacePermutedRO = kspaceIfftROPermuted.begin();
-                        for (scha = 0; scha < srcCHA; scha++)
-                        {
-                            for (e2 = 0; e2 < E2; e2++)
-                            {
-                                for (e1 = 0; e1 < E1; e1++)
-                                {
-                                    size_t ind = e1*RO + e2*RO*E1 + scha*RO*E1*E2;
-                                    size_t ind_dst = e1 + e2*E1 + scha*E1*E2;
-
-                                    for (ro = 0; ro < RO; ro++)
-                                    {
-                                        pKspacePermutedRO[ind_dst + ro*E1*E2*srcCHA] = pKspaceRO[ro + ind];
-                                    }
-                                }
-                            }
-                        }
-                        if (this->perform_timing.value()) timer.stop();
-                        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspaceIfftROPermuted, debug_folder_full_path_ + "kspaceIfftROPermuted_" + suffix_3D); }
-
-                        // ---------------------------------------------------------------------
-                        // get the kspace for recon
-                        // ---------------------------------------------------------------------
-                        hoNDArray< std::complex<float> > kspace3D_recon(E1, E2, 1, srcCHA, RO, kspaceIfftROPermuted.begin());
-
-                        // ---------------------------------------------------------------------
-                        // get spirit kernel for recon
-                        // ---------------------------------------------------------------------
-                        std::complex<float>* pKer = &(recon_obj.kernelIm3D_(0, 0, 0, 0, 0, kerN, kerS, slc));
-                        hoNDArray< std::complex<float> > kIm3D_recon(convkE1, convkE2, srcCHA, dstCHA, RO, pKer);
-
-                        // ---------------------------------------------------------------------
-                        // get the array to store results
-                        // ---------------------------------------------------------------------
-                        std::complex<float>* pRes = &(res(0, 0, 0, 0, n, s, slc));
-                        hoNDArray< std::complex<float> > res_recon(RO, E1, E2, dstCHA, pRes);
-
-                        size_t start_ro = 0;
-                        for (start_ro = 0; start_ro < RO; start_ro += RO_recon_size)
-                        {
-                            size_t end_ro = start_ro + RO_recon_size - 1;
-                            if (end_ro > RO) end_ro = RO - 1;
-                            size_t num = end_ro - start_ro + 1;
-
-                            GDEBUG_CONDITION_STREAM(this->verbose.value(), "3D recon, start_ro - end_ro : " << start_ro << " - " << end_ro);
-
-                            hoNDArray< std::complex<float> > kspace3D_recon_ro(E1, E2, 1, srcCHA, num, 1, 1, kspace3D_recon.begin() + start_ro*E1*E2*srcCHA);
-                            hoNDArray< std::complex<float> > kIm3D_recon_ro(convkE1, convkE2, srcCHA, dstCHA, num, 1, 1, kIm3D_recon.begin() + start_ro*convkE1*convkE2*srcCHA*dstCHA);
-
-                            std::stringstream os_ro;
-                            os_ro << "encoding_" << e << "_n" << n << "_s" << s << "_slc" << slc << "_ro" << start_ro << "_" << end_ro;
-                            std::string suffix_3D_ro = os_ro.str();
-
-                            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kspace3D_recon_ro, debug_folder_full_path_ + "kspace3D_recon_ro_" + suffix_3D_ro); }
-                            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm3D_recon_ro, debug_folder_full_path_ + "kIm3D_recon_ro_" + suffix_3D_ro); }
-
-                            if(num==RO_recon_size)
-                            {
-                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, image domain kernel along E1 and E2 ... ");
-                                Gadgetron::spirit3d_image_domain_kernel(kIm3D_recon_ro, E1, E2, kIm);
-                                if (this->perform_timing.value()) timer.stop();
-                                if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm, debug_folder_full_path_ + "kIm_" + suffix_3D_ro); }
-
-                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, linear unwrapping ... ");
-                                this->perform_spirit_unwrapping(kspace3D_recon_ro, kIm, res_ro_recon);
-                                if (this->perform_timing.value()) timer.stop();
-                            }
-                            else
-                            {
-                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, image domain kernel along E1 and E2, last ... ");
-                                hoNDArray< std::complex<float> > kIm_last(E1, E2, srcCHA, dstCHA, num);
-                                Gadgetron::spirit3d_image_domain_kernel(kIm3D_recon_ro, E1, E2, kIm_last);
-                                if (this->perform_timing.value()) timer.stop();
-                                if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(kIm_last, debug_folder_full_path_ + "kIm_last_" + suffix_3D_ro); }
-
-                                if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, linear unwrapping ... ");
-                                this->perform_spirit_unwrapping(kspace3D_recon_ro, kIm_last, res_ro_recon);
-                                if (this->perform_timing.value()) timer.stop();
-                            }
-
-                            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res_ro_recon, debug_folder_full_path_ + "res_ro_recon_" + suffix_3D_ro); }
-
-                            // copy results
-                            std::complex<float>* pResRO = res_ro_recon.begin();
-                            for (dcha = 0; dcha < dstCHA; dcha++)
-                            {
-                                for (e2 = 0; e2 < E2; e2++)
-                                {
-                                    for (e1 = 0; e1 < E1; e1++)
-                                    {
-                                        for (ro = 0; ro < num; ro++)
-                                        {
-                                            pRes[ro + start_ro + e1*RO + e2*RO*E1 + dcha*RO*E1*E2] = pResRO[e1 + e2*E1 + dcha*E1*E2 + ro*E1*E2*dstCHA];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // go back to kspace for RO
-                        if (this->perform_timing.value()) timer.start("SPIRIT linear 3D, fft along RO for res ... ");
-                        Gadgetron::hoNDFFT<float>::instance()->fft1c(res_recon);
-                        if (this->perform_timing.value()) timer.stop();
-                        if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res_recon, debug_folder_full_path_ + "res_recon_" + suffix_3D); }
-                    }
-                }
-                else
-                {
-                    if (this->perform_timing.value()) timer.start("SPIRIT 2D, linear unwrapping ... ");
-                    this->perform_spirit_unwrapping(kspace, recon_obj.kernelIm2D_, res);
-                    if (this->perform_timing.value()) timer.stop();
-
-                    if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(res, debug_folder_full_path_ + "res_spirit_2D_" + suffix); }
-                }
-            }
-
-            // compute coil combined images
-            if (this->perform_timing.value()) timer.start("SPIRIT linear, coil combination ... ");
-
-            if (E2>1)
-            {
-                Gadgetron::hoNDFFT<float>::instance()->ifft3c(recon_obj.full_kspace_, complex_im_recon_buf_);
-            }
-            else
-            {
-                Gadgetron::hoNDFFT<float>::instance()->ifft2c(recon_obj.full_kspace_, complex_im_recon_buf_);
-            }
-
-            if (!debug_folder_full_path_.empty()) { gt_exporter_.exportArrayComplex(complex_im_recon_buf_, debug_folder_full_path_ + "complex_im_recon_buf_" + suffix); }
-
-#pragma omp parallel default(none) private(ii) shared(num, N, S, recon_obj, RO, E1, E2, dstCHA) if(num>1)
-            {
-                hoNDArray< std::complex<float> > complexImBuf(RO, E1, E2, dstCHA);
-
-#pragma omp for 
-                for (ii = 0; ii < num; ii++)
-                {
-                    size_t slc = ii / (N*S);
-                    size_t s = (ii - slc*N*S) / N;
-                    size_t n = ii - slc*N*S - s*N;
-
-                    size_t coilMapN = n;
-                    if (coilMapN >= recon_obj.coil_map_.get_size(5)) coilMapN = recon_obj.coil_map_.get_size(5) - 1;
-
-                    size_t coilMapS = s;
-                    if (coilMapS >= recon_obj.coil_map_.get_size(6)) coilMapS = recon_obj.coil_map_.get_size(6) - 1;
-
-                    hoNDArray< std::complex<float> > complexIm(RO, E1, E2, dstCHA, &(complex_im_recon_buf_(0, 0, 0, 0, n, s, slc)));
-                    hoNDArray< std::complex<float> > coilMap(RO, E1, E2, dstCHA, &(recon_obj.coil_map_(0, 0, 0, 0, coilMapN, coilMapS, slc)));
-                    hoNDArray< std::complex<float> > combined(RO, E1, E2, 1, &(recon_obj.recon_res_.data_(0, 0, 0, 0, n, s, slc)));
-
-                    Gadgetron::multiplyConj(complexIm, coilMap, complexImBuf);
-                    Gadgetron::sum_over_dimension(complexImBuf, combined, 3);
-                }
-            }
-
-            if (this->perform_timing.value()) timer.stop();
-
-            if (!debug_folder_full_path_.empty())
-            {
-                std::stringstream os;
-                os << "encoding_" << e;
-                std::string suffix = os.str();
-                gt_exporter_.exportArrayComplex(recon_obj.recon_res_.data_, debug_folder_full_path_ + "unwrappedIm_" + suffix);
-            }
-        }
-        catch (...)
-        {
-            GADGET_THROW("Errors happened in GenericReconCartesianSpiritGadget::perform_unwrapping(...) ... ");
         }
     }
 
