@@ -651,6 +651,7 @@ namespace Gadgetron {
 #ifdef USE_OMP
             int numThreads = (int)num;
             if (numThreads > omp_get_num_procs()) numThreads = omp_get_num_procs();
+            GDEBUG_CONDITION_STREAM(this->verbose.value(), "numThreads : " << numThreads);
 #endif // USE_OMP
 
 #pragma omp parallel default(none) private(ii) shared(num, N, S, RO, E1, CHA, ref_N, ref_S, kspace, res, kspace_Shifted, ker_Shifted, iter_max, iter_thres, print_iter) num_threads(numThreads) if(num>1) 
