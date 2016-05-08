@@ -664,7 +664,7 @@ namespace Gadgetron
             // Series Number
             // Only write a number if the image_series_index is positive and non-zero
             key.set(0x0020, 0x0011);
-            ACE_OS::snprintf(buf, BUFSIZE, "%ld", m1.image_series_index);
+            ACE_OS::snprintf(buf, BUFSIZE, "%ld", (long int)m1.image_series_index);
             write_dcm_string(dataset, key, buf);
 
             // Image Number
