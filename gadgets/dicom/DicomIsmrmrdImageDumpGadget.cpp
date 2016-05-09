@@ -72,6 +72,15 @@ namespace Gadgetron {
             }
         }
 
+        // get the vendor
+        if ( h.acquisitionSystemInformation )
+        {
+            if(h.acquisitionSystemInformation->systemVendor)
+            {
+                vendor_ = *h.acquisitionSystemInformation->systemVendor;
+            }
+        }
+
         // if patient info was not set, assemble them
         if(!h.subjectInformation.is_present() || !h.subjectInformation.get().patientName.is_present())
         {

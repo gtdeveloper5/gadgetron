@@ -18,6 +18,8 @@ namespace Gadgetron
         }
     }
 
+    // ------------------------------------------------------------------------------------------------------ 
+
     void fill_dicom_image_from_ismrmrd_header(ISMRMRD::IsmrmrdHeader& h, DcmFileFormat& dcmFile)
     {
         try
@@ -601,6 +603,8 @@ namespace Gadgetron
         }
     }
 
+    // ------------------------------------------------------------------------------------------------------ 
+
     template<typename T> 
     void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<T>& m2, std::string& seriesIUID, DcmFileFormat& dcmFile)
     {
@@ -784,6 +788,8 @@ namespace Gadgetron
     template EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<float>& m2, std::string& seriesIUID, DcmFileFormat& dcmFile);
     template EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<double>& m2, std::string& seriesIUID, DcmFileFormat& dcmFile);
 
+    // ------------------------------------------------------------------------------------------------------ 
+
     template<typename T> 
     void write_ismrmd_image_into_dicom(const  ISMRMRD::ImageHeader& m1, const  hoNDArray<T>& m2, ISMRMRD::IsmrmrdHeader& h, ISMRMRD::MetaContainer& attrib, std::string& seriesIUID, DcmFileFormat& dcmFile)
     {
@@ -950,4 +956,560 @@ namespace Gadgetron
     template EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<unsigned int>& m2, ISMRMRD::IsmrmrdHeader& h, ISMRMRD::MetaContainer& attrib, std::string& seriesIUID, DcmFileFormat& dcmFile);
     template EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<float>& m2, ISMRMRD::IsmrmrdHeader& h, ISMRMRD::MetaContainer& attrib, std::string& seriesIUID, DcmFileFormat& dcmFile);
     template EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<double>& m2, ISMRMRD::IsmrmrdHeader& h, ISMRMRD::MetaContainer& attrib, std::string& seriesIUID, DcmFileFormat& dcmFile);
+
+    // ------------------------------------------------------------------------------------------------------ 
+
+    void find_max_in_vec(float vector[3], float& elem, int& orientation)
+    {
+        if( std::abs(vector[2]) > std::abs(vector[1]) )
+        {
+            elem = vector[2];
+            orientation = 2;
+            if(std::abs(vector[0])>std::abs(vector[2]))
+            {
+                elem = vector[0];
+                orientation = 0;
+            }
+        }
+        else
+        {
+            elem = vector[1];
+            orientation = 1;
+            if( std::abs(vector[0]) > std::abs(vector[1]) )
+            {
+                elem = vector[0];
+                orientation= 0;
+            }
+        }
+    }
+
+    void find_min_in_vec(float vector[3], float& elem, int& orientation)
+    {
+        if( std::abs(vector[2]) < std::abs(vector[1]) )
+        {
+            elem = vector[2];
+            orientation = 2;
+            if(std::abs(vector[0])<std::abs(vector[2]))
+            {
+                elem = vector[0];
+                orientation = 0;
+            }
+        }
+        else
+        {
+            elem = vector[1];
+            orientation = 1;
+            if( std::abs(vector[0]) < std::abs(vector[1]) )
+            {
+                elem = vector[0];
+                orientation= 0;
+            }
+        }
+    }
+
+    void compute_norm_form_row_col(float rowvec[3], float colvec[3], float normvec[3])
+    {
+        // rowvec cross colvec
+        normvec[0] = rowvec[1]*colvec[2] - rowvec[2]*colvec[1];
+        normvec[1] = rowvec[2]*colvec[0] - rowvec[0]*colvec[2];
+        normvec[2] = rowvec[0]*colvec[1] - rowvec[1]*colvec[0];
+    }
+
+    // counter clock wise rotation
+    template<typename T> 
+    void rotate_image(float rotate_angle, ISMRMRD::ImageHeader& header, hoNDArray<T>& data)
+    {
+        if(std::abs(rotate_angle-0) < FLT_EPSILON)
+        {
+            return;
+        }
+
+        std::vector<size_t> dim;
+        data.get_dimensions(dim);
+
+        T* pData = data.begin();
+
+        size_t sx = data.get_size(0);
+        size_t sy = data.get_size(1);
+
+        size_t num = data.get_number_of_elements() / (dim[0]*dim[1]);
+
+        size_t n, x, y;
+
+        hoNDArray<T> buf;
+        buf.create(sx*sy);
+        T* pBuf = buf.begin();
+
+        float read_dir[3], phase_dir[3], norm_dir[3];
+
+        uint16_t matrix_size[3];
+        float fov[3];
+
+        // counter clock wise
+        if(std::abs(rotate_angle-90) < FLT_EPSILON)
+        {
+            dim[0] = data.get_size(1);
+            dim[1] = data.get_size(0);
+
+            hoNDArray<T> res(dim);
+            T* pRes = res.begin();
+
+            for (n=0; n<num; n++)
+            {
+                // flip along 2nd dimension
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pBuf[x + (sy-1-y)*sx] = pData[n*sx*sy + x + y*sx];
+                    }
+                }
+
+                // transpose
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pRes[n*sx*sy + y + x*sy] = pBuf[x + y*sx];
+                    }
+                }
+            }
+
+            data = res;
+
+            read_dir[0] = header.phase_dir[0]; 
+            read_dir[1] = header.phase_dir[1]; 
+            read_dir[2] = header.phase_dir[2];
+
+            phase_dir[0] = -header.read_dir[0]; 
+            phase_dir[1] = -header.read_dir[1]; 
+            phase_dir[2] = -header.read_dir[2];
+
+            compute_norm_form_row_col(read_dir, phase_dir, norm_dir);
+
+            matrix_size[0] = header.matrix_size[1];
+            matrix_size[1] = header.matrix_size[0];
+            matrix_size[2] = header.matrix_size[2];
+
+            fov[0] = header.field_of_view[1];
+            fov[1] = header.field_of_view[0];
+            fov[2] = header.field_of_view[2];
+        }
+        else if(std::abs(rotate_angle-180) < FLT_EPSILON)
+        {
+            hoNDArray<T> res(dim);
+            T* pRes = res.begin();
+
+            // flip along x and y
+            for (n=0; n<num; n++)
+            {
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pRes[n*sx*sy + (sx-1-x) + (sy-1-y)*sx] = pData[n*sx*sy + x + y*sx];
+                    }
+                }
+            }
+
+            data = res;
+
+            read_dir[0] = -header.read_dir[0]; 
+            read_dir[1] = -header.read_dir[1]; 
+            read_dir[2] = -header.read_dir[2];
+
+            phase_dir[0] = -header.phase_dir[0]; 
+            phase_dir[1] = -header.phase_dir[1]; 
+            phase_dir[2] = -header.phase_dir[2];
+
+            compute_norm_form_row_col(read_dir, phase_dir, norm_dir);
+
+            matrix_size[0] = header.matrix_size[0];
+            matrix_size[1] = header.matrix_size[1];
+            matrix_size[2] = header.matrix_size[2];
+
+            fov[0] = header.field_of_view[0];
+            fov[1] = header.field_of_view[1];
+            fov[2] = header.field_of_view[2];
+        }
+        else if(std::abs(rotate_angle-270) < FLT_EPSILON)
+        {
+            dim[0] = data.get_size(1);
+            dim[1] = data.get_size(0);
+
+            hoNDArray<T> res(dim);
+            T* pRes = res.begin();
+
+            for (n=0; n<num; n++)
+            {
+                // transpose
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pBuf[(sy-1-y) + (sx-1-x)*sy] = pData[n*sx*sy + x + y*sx];
+                    }
+                }
+
+                // flip along 2nd dimension
+                for (y=0; y<sx; y++)
+                {
+                    for (x=0; x<sy; x++)
+                    {
+                        pRes[n*sx*sy + x + y*sy] = pBuf[x + (sx-1-y)*sy];
+                    }
+                }
+            }
+
+            data = res;
+
+            read_dir[0] = -header.phase_dir[0]; 
+            read_dir[1] = -header.phase_dir[1]; 
+            read_dir[2] = -header.phase_dir[2];
+
+            phase_dir[0] = header.read_dir[0]; 
+            phase_dir[1] = header.read_dir[1]; 
+            phase_dir[2] = header.read_dir[2];
+
+            compute_norm_form_row_col(read_dir, phase_dir, norm_dir);
+
+            matrix_size[0] = header.matrix_size[1];
+            matrix_size[1] = header.matrix_size[0];
+            matrix_size[2] = header.matrix_size[2];
+
+            fov[0] = header.field_of_view[1];
+            fov[1] = header.field_of_view[0];
+            fov[2] = header.field_of_view[2];
+        }
+
+        header.read_dir[0] = read_dir[0];
+        header.read_dir[1] = read_dir[1];
+        header.read_dir[2] = read_dir[2];
+
+        header.phase_dir[0] = phase_dir[0];
+        header.phase_dir[1] = phase_dir[1];
+        header.phase_dir[2] = phase_dir[2];
+
+        header.slice_dir[0] = norm_dir[0];
+        header.slice_dir[1] = norm_dir[1];
+        header.slice_dir[2] = norm_dir[2];
+
+        header.matrix_size[0] = matrix_size[0];
+        header.matrix_size[1] = matrix_size[1];
+        header.matrix_size[2] = matrix_size[2];
+
+        header.field_of_view[0] = fov[0];
+        header.field_of_view[1] = fov[1];
+        header.field_of_view[2] = fov[2];
+    }
+
+    template<typename T> 
+    void mirror_image(int mirror, ISMRMRD::ImageHeader& header, hoNDArray<T>& data)
+    {
+        if(mirror==-1) return;
+
+        std::vector<size_t> dim;
+        data.get_dimensions(dim);
+
+        T* pData = data.begin();
+
+        size_t sx = data.get_size(0);
+        size_t sy = data.get_size(1);
+
+        size_t num = data.get_number_of_elements() / (dim[0]*dim[1]);
+        size_t n, x, y;
+
+        hoNDArray<T> buf;
+        buf.create(sx*sy);
+        T* pBuf = buf.begin();
+
+        float read_dir[3], phase_dir[3], norm_dir[3];
+
+        if(mirror == 0) // flip x
+        {
+            hoNDArray<T> res(dim);
+            T* pRes = res.begin();
+
+            for (n=0; n<num; n++)
+            {
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pRes[n*sx*sy + (sx-1-x) + y*sx] = pData[n*sx*sy + x + y*sx];
+                    }
+                }
+            }
+
+            data = res;
+
+            read_dir[0] = -header.read_dir[0]; 
+            read_dir[1] = -header.read_dir[1]; 
+            read_dir[2] = -header.read_dir[2];
+
+            phase_dir[0] = header.phase_dir[0]; 
+            phase_dir[1] = header.phase_dir[1]; 
+            phase_dir[2] = header.phase_dir[2];
+
+            compute_norm_form_row_col(read_dir, phase_dir, norm_dir);
+        }
+        else if(mirror==1) // flip y
+        {
+            hoNDArray<T> res(dim);
+            T* pRes = res.begin();
+
+            for (n=0; n<num; n++)
+            {
+                for (y=0; y<sy; y++)
+                {
+                    for (x=0; x<sx; x++)
+                    {
+                        pRes[n*sx*sy + x + (sy-1-y)*sx] = pData[n*sx*sy + x + y*sx];
+                    }
+                }
+            }
+
+            data = res;
+
+            read_dir[0] = header.read_dir[0]; 
+            read_dir[1] = header.read_dir[1]; 
+            read_dir[2] = header.read_dir[2];
+
+            phase_dir[0] = -header.phase_dir[0]; 
+            phase_dir[1] = -header.phase_dir[1]; 
+            phase_dir[2] = -header.phase_dir[2];
+
+            compute_norm_form_row_col(read_dir, phase_dir, norm_dir);
+        }
+        else
+        {
+            return;
+        }
+
+        header.read_dir[0] = read_dir[0];
+        header.read_dir[1] = read_dir[1];
+        header.read_dir[2] = read_dir[2];
+
+        header.phase_dir[0] = phase_dir[0];
+        header.phase_dir[1] = phase_dir[1];
+        header.phase_dir[2] = phase_dir[2];
+
+        header.slice_dir[0] = norm_dir[0];
+        header.slice_dir[1] = norm_dir[1];
+        header.slice_dir[2] = norm_dir[2];
+    }
+
+    template<typename T> 
+    void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<T>& data)
+    {
+        try
+        {
+            float* rowvec  = header.read_dir;
+            float* colvec  = header.phase_dir;
+            float* normvec = header.slice_dir;
+
+            float maxNorm(0); int maxOriNorm(0);
+            find_max_in_vec(normvec, maxNorm, maxOriNorm);
+
+            float maxRow(0); int maxOriRow(0);
+            float minRow(0); int minOriRow(0);
+            find_max_in_vec(rowvec, maxRow, maxOriRow);
+            find_min_in_vec(rowvec, minRow, minOriRow);
+
+            float maxCol(0); int maxOriCol(0);
+            float minCol(0); int minOriCol(0);
+            find_max_in_vec(colvec, maxCol, maxOriCol);
+            find_min_in_vec(colvec, minCol, minOriCol);
+
+            float d_row(0), d_col(0);
+
+            if(minOriRow==2)
+                d_row = std::abs(std::abs(rowvec[0])-std::abs(rowvec[1]));
+            else if(minOriRow==1)
+                d_row = std::abs(std::abs(rowvec[0])-std::abs(rowvec[2]));
+            else
+                d_row = std::abs(std::abs(rowvec[1])-std::abs(rowvec[2]));
+
+            if(minOriCol==2)
+                d_col = std::abs(std::abs(colvec[0])-std::abs(colvec[1]));
+            else if(minOriCol==1)
+                d_col = std::abs(std::abs(colvec[0])-std::abs(colvec[2]));
+            else
+                d_col = std::abs(std::abs(colvec[1])-std::abs(colvec[2]));
+
+            bool row_t = true, row_s = true, row_c = true;
+            bool col_t = true, col_s = true, col_c = true;
+            if(maxOriNorm==2)
+            {
+                row_t = false;
+                col_t = false;
+            }
+            else if(maxOriNorm==1)
+            {
+                row_c = false;
+                col_c = false;
+            }
+            else
+            {
+                row_s = false;
+                col_s = false;
+            }
+
+            float oriRow(0), oriCol(0);
+            int mainOriRow(0);
+
+            if(d_row > d_col)
+            {
+                if(maxOriRow==1)
+                {
+                    col_c = false;
+                    oriRow = rowvec[1];
+                    mainOriRow = 1;
+                }
+                else if(maxOriRow==0)
+                {
+                    col_s = false;
+                    oriRow = rowvec[0];
+                    mainOriRow = 0;
+                }
+                else
+                {
+                    col_t = false;
+                    oriRow = rowvec[2];
+                    mainOriRow = 2;
+                }
+            }
+            else
+            {
+                if(maxOriCol==1)
+                {
+                    row_c = false;
+                    oriCol = colvec[1];
+                }
+                else if(maxOriCol==0)
+                {
+                    row_s = false;
+                    oriCol = colvec[0];
+                }
+                else
+                {
+                    row_t = false;
+                    oriCol = colvec[2];
+                }
+            }
+
+            if(d_row > d_col)
+            {
+                if(col_s) oriCol = colvec[0];
+                if(col_c) oriCol = colvec[1];
+                if(col_t) oriCol = colvec[2];
+            }
+            else
+            {
+                if(row_s) { oriRow = rowvec[0]; mainOriRow = 0; }
+                if(row_c) { oriRow = rowvec[1]; mainOriRow = 1; }
+                if(row_t) { oriRow = rowvec[2]; mainOriRow = 2; }
+            }
+
+            int ori_row(0);
+            if(maxOriNorm==0) ori_row = 1;
+
+            bool isOrientedRow = false;
+            bool isOrientedCol = false;
+            if(maxOriNorm==0 || maxOriNorm ==1)
+            {
+                if(mainOriRow == ori_row)
+                {
+                    isOrientedRow = (oriRow>0);
+                    isOrientedCol = (oriCol<0);
+                }
+                else
+                {
+                    isOrientedRow = (oriRow<0);
+                    isOrientedCol = (oriCol>0);
+                }
+            }
+            else
+            {
+                isOrientedRow = (oriRow>0);
+                isOrientedCol = (oriCol>0);
+            }
+
+            float rotate_angle = 0;
+            int mirror = -1;
+            if(mainOriRow == ori_row)
+            {
+                if(isOrientedRow && !isOrientedCol)
+                {
+                    mirror = 1;
+                }
+
+                if(!isOrientedRow && isOrientedCol)
+                {
+                    mirror = 0;
+                }
+
+                if(!isOrientedRow && !isOrientedCol)
+                {
+                    rotate_angle = 180;
+                }
+            }
+            else
+            {
+                if(maxOriNorm==1)
+                {
+                    isOrientedRow = !isOrientedRow;
+                    isOrientedCol = !isOrientedCol;
+                }
+
+                compute_norm_form_row_col(rowvec, colvec, normvec);
+
+                find_max_in_vec(normvec, maxNorm, maxOriNorm);
+
+                if(maxNorm>0)
+                {
+                    isOrientedRow = !isOrientedRow;
+                    isOrientedCol = !isOrientedCol;
+                }
+
+                if(isOrientedRow && isOrientedCol)
+                {
+                    rotate_angle = 90;
+                    mirror = 1;
+                }
+
+                if(isOrientedRow && !isOrientedCol)
+                {
+                    rotate_angle = 90;
+                }
+
+                if(!isOrientedRow && isOrientedCol)
+                {
+                    rotate_angle = 270;
+                }
+
+                if(!isOrientedRow && !isOrientedCol)
+                {
+                    rotate_angle = 270;
+                    mirror = 1;
+                }
+            }
+
+            rotate_image(rotate_angle, header, data);
+            mirror_image(mirror, header, data);
+        }
+        catch(...)
+        {
+            GADGET_THROW("Exceptions happened in ismrmd_image_2d_to_dicom_norm_orientiation(...) ... ");
+        }
+    }
+
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<short>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<unsigned short>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<int>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<unsigned int>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<float>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray<double>& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray< std::complex<float> >& data);
+    template EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& header, hoNDArray< std::complex<double> >& data);
 }

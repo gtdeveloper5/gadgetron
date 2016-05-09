@@ -47,4 +47,9 @@ namespace Gadgetron
     template<typename T> EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<T>& m2, std::string& seriesIUID, DcmFileFormat& dcmFile);
     // with image attribute
     template<typename T> EXPORTGADGETSDICOM void write_ismrmd_image_into_dicom(const ISMRMRD::ImageHeader& m1, const hoNDArray<T>& m2, ISMRMRD::IsmrmrdHeader& h, ISMRMRD::MetaContainer& attrib, std::string& seriesIUID, DcmFileFormat& dcmFile);
+
+    // --------------------------------------------------------------------------
+    /// change an ismrmrd 2d image for dicom normal orientation
+    // --------------------------------------------------------------------------
+    template<typename T> EXPORTGADGETSDICOM void ismrmd_image_2d_to_dicom_norm_orientiation(ISMRMRD::ImageHeader& m1, hoNDArray<T>& m2);
 }

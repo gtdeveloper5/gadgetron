@@ -50,6 +50,7 @@ namespace Gadgetron
         GADGET_PROPERTY(file_prefix,      std::string, "Prefix for dump file", "ISMRMRD_DICOM_DUMP");
         GADGET_PROPERTY(append_id,        bool,        "ISMRMRD measurement ID to file name prefix (if available)", true);
         GADGET_PROPERTY(append_timestamp, bool,        "Append timestamp to file name prefix", true);
+        GADGET_PROPERTY(adjust_image_orientation, bool,"Adjust image orienation for dicom", true);
 
         virtual int process_config(ACE_Message_Block * mb);
         virtual int process(GadgetContainerMessage<ISMRMRD::ImageHeader>* m1);
@@ -57,8 +58,11 @@ namespace Gadgetron
         template <typename T>
         int dump_image(GadgetContainerMessage<ISMRMRD::ImageHeader>* m1, GadgetContainerMessage< hoNDArray< T > >* m2)
         {
-            try{
+            try
+            {
                 GadgetContainerMessage< ISMRMRD::MetaContainer >* m3 = AsContainerMessage< ISMRMRD::MetaContainer >(m2->cont());
+
+                bool adjust_image_ori = adjust_image_orientation.value();
 
                 std::string filename;
 
@@ -82,6 +86,11 @@ namespace Gadgetron
                         for (n = 0; n < num; n++)
                         {
                             dataRole[n] = std::string(img_attrib->as_str(GADGETRON_DATA_ROLE, n));
+
+                            if(dataRole[n]==GADGETRON_IMAGE_RECON_FIGURE)
+                            {
+                                adjust_image_ori = false;
+                            }
                         }
                     }
 
@@ -119,9 +128,51 @@ namespace Gadgetron
                     filename = ostr.str();
                 }
 
+                ISMRMRD::ImageHeader mh = *m1->getObjectPtr();
+                hoNDArray< T > data = *m2->getObjectPtr();
+
+                if(adjust_image_ori)
+                {
+                    //if(!vendor_.empty())
+                    //{
+                    //    if(vendor_.find("Siemens")!=std::string::npos 
+                    //        || vendor_.find("siemens")!=std::string::npos 
+                    //        || vendor_.find("SIEMENS")!=std::string::npos )
+                    //    {
+                    //        // flip the images along x and y
+                    //        size_t sx = data.get_size(0);
+                    //        size_t sy = data.get_size(1);
+                    //        size_t num = data.get_number_of_elements()/(sx*sy);
+
+                    //        T* pData = data.begin();
+
+                    //        hoNDArray<T> buf;
+                    //        buf.create(sx, sy);
+                    //        T* pBuf = buf.begin();
+
+                    //        size_t x, y, n;
+                    //        for (n=0; n<num; n++)
+                    //        {
+                    //            for (y=0; y<sy; y++)
+                    //            {
+                    //                for (x=0; x<sx; x++)
+                    //                {
+                    //                    pBuf[sx-1-x + (sy-1-y)*sx] = pData[n*sx*sy + x + y*sx];
+                    //                }
+                    //            }
+
+                    //            memcpy(pData+n*sx*sy, pBuf, sizeof(T)*sx*sy);
+                    //        }
+                    //    }
+                    //}
+
+                    // adjust dicom orientation
+                    Gadgetron::ismrmd_image_2d_to_dicom_norm_orientiation(mh, data);
+                }
+
                 // --------------------------------------------------
 
-                unsigned short series_number = m1->getObjectPtr()->image_series_index + 1;
+                unsigned short series_number = mh.image_series_index + 1;
 
                 // Try to find an already-generated Series Instance UID in our map
                 std::map<unsigned int, std::string>::iterator it = seriesIUIDs.find(series_number);
@@ -135,16 +186,14 @@ namespace Gadgetron
 
                 // --------------------------------------------------
 
-                ISMRMRD::ImageHeader mh = *m1->getObjectPtr();
-
                 if(m3)
                 {
-                    Gadgetron::write_ismrmd_image_into_dicom(mh, *m2->getObjectPtr(), xml, *m3->getObjectPtr(), seriesIUIDs[series_number], dcmFile);
+                    Gadgetron::write_ismrmd_image_into_dicom(mh, data, xml, *m3->getObjectPtr(), seriesIUIDs[series_number], dcmFile);
                 }
                 else
                 {
                     ISMRMRD::MetaContainer attrib;
-                    Gadgetron::write_ismrmd_image_into_dicom(mh, *m2->getObjectPtr(), xml, attrib, seriesIUIDs[series_number], dcmFile);
+                    Gadgetron::write_ismrmd_image_into_dicom(mh, data, xml, attrib, seriesIUIDs[series_number], dcmFile);
                 }
 
                 DcmTagKey key;
@@ -271,6 +320,7 @@ namespace Gadgetron
         std::string study_;
         std::string measurement_;
         std::string protocol_name_;
+        std::string vendor_;
 
         std::string get_date_string();
         std::string get_time_string();
