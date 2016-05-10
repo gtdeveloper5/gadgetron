@@ -1456,7 +1456,7 @@ namespace Gadgetron
             }
             else
             {
-                if(maxOriNorm==1)
+                if(maxOriNorm==0)
                 {
                     isOrientedRow = !isOrientedRow;
                     isOrientedCol = !isOrientedCol;
@@ -1494,6 +1494,8 @@ namespace Gadgetron
                     mirror = 1;
                 }
             }
+
+            // GDEBUG_STREAM("rotate_angle : " << rotate_angle << " - mirror : " << mirror);
 
             rotate_image(rotate_angle, header, data);
             mirror_image(mirror, header, data);
