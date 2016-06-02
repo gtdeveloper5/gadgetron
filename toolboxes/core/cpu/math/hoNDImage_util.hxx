@@ -7,7 +7,7 @@ namespace Gadgetron
     template <typename ImageType> 
     bool corrCoef(const ImageType& a, const ImageType& b, typename ImageType::value_type& r)
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -53,7 +53,7 @@ namespace Gadgetron
     template<typename ImageType, typename InterpolatorType> 
     bool downsampleImage(const ImageType& in, InterpolatorType& interp, ImageType& out, float ratio[])
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -83,7 +83,7 @@ namespace Gadgetron
     template<typename ImageType, typename InterpolatorType> 
     bool upsampleImage(const ImageType& in, InterpolatorType& interp, ImageType& out, float ratio[])
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -113,7 +113,7 @@ namespace Gadgetron
     template<typename ImageType, typename InterpolatorType> 
     bool resampleImage(const ImageType& in, InterpolatorType& interp, const std::vector<size_t>& dim_out, ImageType& out)
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -288,7 +288,7 @@ namespace Gadgetron
     template<typename ImageType, typename BoundaryHandlerType> 
     bool downsampleImageBy2WithAveraging(const ImageType& in, BoundaryHandlerType& bh, ImageType& out)
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -480,7 +480,7 @@ namespace Gadgetron
     template<typename ImageType, typename BoundaryHandlerType> 
     bool expandImageBy2(const ImageType& in, BoundaryHandlerType& bh, ImageType& out)
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
@@ -1041,7 +1041,7 @@ namespace Gadgetron
     template<typename ImageType> 
     bool gradient(const ImageType& x, ImageType gx[])
     {
-        typedef ImageType::value_type T;
+        typedef typename ImageType::value_type T;
         unsigned int D = ImageType::NDIM;
 
         try
