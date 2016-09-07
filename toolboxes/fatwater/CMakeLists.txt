@@ -29,7 +29,7 @@ target_link_libraries(gadgetron_toolbox_fatwater
   gadgetron_toolbox_cpucore 
   gadgetron_toolbox_cpucore_math 
   ${ARMADILLO_LIBRARIES} 
-  boost_timer
+  ${Boost_LIBRARIES}
   )
 
 install(TARGETS gadgetron_toolbox_fatwater DESTINATION lib COMPONENT main)

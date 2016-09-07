@@ -23,7 +23,7 @@
 #include "simplexLagariaSolver.h"
 #include "twoParaExpDecayOperator.h"
 #include "curveFittingCostFunction.h"
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 #include <boost/random.hpp>
 
 #define GAMMABAR 42.576 // MHz/T
@@ -52,7 +52,7 @@ Traits::edge_descriptor AddEdge(Traits::vertex_descriptor &v1,
 				Graph &g);
 */
 
-Traits::edge_descriptor AddEdge(Traits::vertex_descriptor &v1, Traits::vertex_descriptor &v2, property_map < Graph, edge_reverse_t >::type &rev, const double capacity, Graph &g)
+void AddEdge(Traits::vertex_descriptor &v1, Traits::vertex_descriptor &v2, property_map < Graph, edge_reverse_t >::type &rev, const double capacity, Graph &g)
 {
   Traits::edge_descriptor e1 = add_edge(v1, v2, g).first;
   Traits::edge_descriptor e2 = add_edge(v2, v1, g).first;
