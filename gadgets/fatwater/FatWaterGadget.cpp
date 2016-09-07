@@ -123,16 +123,17 @@ namespace Gadgetron{
                     for (uint16_t n = 0; n < n_images; n++) {
                         m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n] = m1->getObjectPtr()->headers_[loc*s_images*n_images + 0*n_images + n];
 
-                        m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index =
-                            m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index + 100;
-                        
                         ISMRMRD::MetaContainer meta = m1->getObjectPtr()->meta_[loc*n_images*s_images + n];
                         //TODO: These sepcies and image type specifiers should come from the toolbox
                         if (s < a.species_.size()) {
                             if (a.species_[s].name_ == "water") {
                                 meta.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_WATER);
+                                m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_index = 1 + s*2 + loc * s_images;
+                                m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index = m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index + 100;
                             } else if (a.species_[s].name_ == "fat") {
                                 meta.set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_FAT);
+                                m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_index = 1 + s*2 + loc * s_images;
+                                m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index = m2->getObjectPtr()->headers_[loc*s_images*n_images + s*n_images + n].image_series_index + 101;
                             }
                         } else {
                             //TODO: What to call these images
