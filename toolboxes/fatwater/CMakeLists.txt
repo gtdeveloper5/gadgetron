@@ -16,10 +16,18 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/toolboxes/operators/cpu
   )
 
+set( gadgetron_fatwater_header_files 
+    fatwater_export.h 
+    fatwater.h 
+    fatWaterMultiPeakOperator.h 
+    fatWaterMultiPeakR2StarOperator.h 
+    )
+
+set( gadgetron_fatwater_src_files fatwater.cpp )
+
 add_library(gadgetron_toolbox_fatwater SHARED 
-  fatwater_export.h 
-  fatwater.h
-  fatwater.cpp
+  ${gadgetron_fatwater_header_files} 
+  ${gadgetron_fatwater_src_files} 
   )
 
 set_target_properties(gadgetron_toolbox_fatwater PROPERTIES VERSION ${GADGETRON_VERSION_STRING} SOVERSION ${GADGETRON_SOVERSION})
@@ -35,6 +43,5 @@ target_link_libraries(gadgetron_toolbox_fatwater
 install(TARGETS gadgetron_toolbox_fatwater DESTINATION lib COMPONENT main)
 
 install(FILES
-  fatwater_export.h 
-  fatwater.h
+  ${gadgetron_fatwater_header_files} 
   DESTINATION ${GADGETRON_INSTALL_INCLUDE_PATH} COMPONENT main)

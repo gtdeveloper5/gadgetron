@@ -24,7 +24,7 @@ protected:
     }
 };
 
-typedef Types<float> realImplementations;
+typedef Types<float, double> realImplementations;
 TYPED_TEST_CASE(curveFitting_test, realImplementations);
 
 TYPED_TEST(curveFitting_test, T2SE)
@@ -68,6 +68,6 @@ TYPED_TEST(curveFitting_test, T2SE)
 
     solver.solve(b, bi);
 
-    EXPECT_NEAR(b[0], 617.257, 0.001);
-    EXPECT_NEAR(b[1], 644.417, 0.001);
+    EXPECT_NEAR(std::abs(b[0]), 617.257, 0.001);
+    EXPECT_NEAR(std::abs(b[1]), 644.417, 0.001);
 }
