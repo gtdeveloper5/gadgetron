@@ -21,9 +21,10 @@ include_directories(
   )
 
 add_library(gadgetron_sasha_hc SHARED 
-  FlagSashaHCGadget.h      FlagSashaHCGadget.cpp
-  BucketToBufferHCGadget.h BucketToBufferHCGadget.cpp
-  sashahclib_export.h)
+    SASHA-HC.xml
+    FlagSashaHCGadget.h      FlagSashaHCGadget.cpp
+    BucketToBufferHCGadget.h BucketToBufferHCGadget.cpp
+    sashahclib_export.h)
 
 set_target_properties(gadgetron_sasha_hc PROPERTIES VERSION ${GADGETRON_VERSION_STRING} SOVERSION ${GADGETRON_SOVERSION})
 
@@ -39,6 +40,8 @@ install (FILES  FlagSashaHCGadget.h
                 BucketToBufferHCGadget.h
                 sashahclib_export.h
                 DESTINATION ${GADGETRON_INSTALL_INCLUDE_PATH} COMPONENT main)
+
+install(FILES SASHA-HC.xml DESTINATION ${GADGETRON_INSTALL_CONFIG_PATH} COMPONENT main)
 
 install (TARGETS gadgetron_sasha_hc DESTINATION lib COMPONENT main)
 
