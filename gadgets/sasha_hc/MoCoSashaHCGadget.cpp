@@ -213,6 +213,7 @@ namespace Gadgetron {
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA");
 
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA");
+                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
                     // ------------------------------
 
                     m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 1, slc);
@@ -222,6 +223,7 @@ namespace Gadgetron {
                     m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA_HC");
 
                     m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC");
+                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC");
                     // ------------------------------
 
                     m1_sasha_diff->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
@@ -231,6 +233,7 @@ namespace Gadgetron {
                     m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA_HC_DIFF");
 
                     m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC_DIFF");
+                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC_DIFF");
                 }
             }
 
@@ -283,6 +286,9 @@ namespace Gadgetron {
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "MOCO");
 
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGEPROCESSINGHISTORY, "MOCO");
+
+                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
+                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
                 }
             }
 
