@@ -127,14 +127,15 @@ namespace Gadgetron {
 
             // perform moco
             std::string moco_str = "GenericReconCartesianSpiritGadget, perform moco for " + str_slc;
-            if (perform_timing.value()) { gt_timer_.start(moco_str.c_str()); }
+            if (perform_timing.value()) { gt_timer_local_.start(moco_str.c_str()); }
             Gadgetron::hoImageRegContainer2DRegistration<real_value_type, float, 2, 2> reg;
             Gadgetron::perform_moco_fixed_key_frame_2DT(target, key_frame, (real_value_type)(regularization_hilbert_strength.value()), iters_, bidirectional_moco.value(), warp_input, reg);
-            if (perform_timing.value()) { gt_timer_.stop(); }
+            if (perform_timing.value()) { gt_timer_local_.stop(); }
 
             // apply the deformation
 
             moco_str = "GenericReconCartesianSpiritGadget, apply deformation field for " + str_slc;
+            if (perform_timing.value()) { gt_timer_local_.start(moco_str.c_str()); }
 
             T* pFirstN = &(recon_res_->data_(0, 0, 0, 0, 0, 0, slc));
             hoNDArray<T> firstArray(RO, E1, E2, CHA, N, pFirstN);
@@ -157,7 +158,7 @@ namespace Gadgetron {
             hoNDArray<T> firstArrayMOCO(RO, E1, N, pFirstN);
             Gadgetron::real_imag_to_complex(firstArray_real_moco, firstArray_imag_moco, firstArrayMOCO);
 
-            if (perform_timing.value()) { gt_timer_.stop(); }
+            if (perform_timing.value()) { gt_timer_local_.stop(); }
 
             if (!debug_folder_full_path_.empty())
             {
