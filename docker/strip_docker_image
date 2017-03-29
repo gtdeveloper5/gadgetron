@@ -32,6 +32,19 @@ RUN rm -rf /usr/local/cuda/libnsight
 RUN rm -rf /usr/local/cuda/libnvvp
 RUN rm -rf /usr/local/cuda/lib64/*.a
 RUN rm -rf /usr/local/cuda/nvvm
+RUN mv /opt/intel/lib/intel64/libiomp5.so /opt/intel/lib/
+RUN rm -rf /opt/intel/lib/intel64/*
+RUN mv /opt/intel/lib/libiomp5.so /opt/intel/lib/intel64/
+RUN rm -rf /opt/intel/mkl/benchmarks
+RUN rm -rf /opt/intel/mkl/bin
+RUN rm -rf /opt/intel/mkl/examples
+RUN rm -rf /opt/intel/mkl/interfaces
+RUN rm -rf /opt/intel/mkl/tests
+RUN rm -rf /opt/intel/mkl/tools
+RUN rm -rf /opt/intel/mkl/lib/mic
+RUN rm -rf /opt/intel/mkl/lib/intel64/locale
+RUN rm -rf /opt/intel/mkl/lib/intel64/*.a
+RUN rm -rf /opt/intel/mkl/lib/intel64/lib*ilp*.so
 ENTRYPOINT ["/opt/start_supervisor"]
 EOF
 
