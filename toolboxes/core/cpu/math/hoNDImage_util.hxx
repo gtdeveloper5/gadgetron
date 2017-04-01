@@ -4,7 +4,7 @@
 
 namespace Gadgetron
 {
-    template <typename ImageType> 
+    template <typename ImageType>
     bool corrCoef(const ImageType& a, const ImageType& b, typename ImageType::value_type& r)
     {
         typedef typename ImageType::value_type T;
@@ -50,7 +50,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType, typename InterpolatorType> 
+    template<typename ImageType, typename InterpolatorType>
     bool downsampleImage(const ImageType& in, InterpolatorType& interp, ImageType& out, float ratio[])
     {
         typedef typename ImageType::value_type T;
@@ -80,7 +80,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType, typename InterpolatorType> 
+    template<typename ImageType, typename InterpolatorType>
     bool upsampleImage(const ImageType& in, InterpolatorType& interp, ImageType& out, float ratio[])
     {
         typedef typename ImageType::value_type T;
@@ -110,7 +110,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType, typename InterpolatorType> 
+    template<typename ImageType, typename InterpolatorType>
     bool resampleImage(const ImageType& in, InterpolatorType& interp, const std::vector<size_t>& dim_out, ImageType& out)
     {
         typedef typename ImageType::value_type T;
@@ -170,7 +170,7 @@ namespace Gadgetron
                 {
                     coord_type px, py, ix_in, iy_in;
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( y=0; y<oy; y++ )
                     {
                         for ( x=0; x<ox; x++ )
@@ -197,7 +197,7 @@ namespace Gadgetron
                     coord_type ix_in, iy_in, iz_in;
                     coord_type px, py, pz;
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( z=0; z<oz; z++ )
                     {
                         for ( y=0; y<oy; y++ )
@@ -230,7 +230,7 @@ namespace Gadgetron
                     coord_type ix_in, iy_in, iz_in, it_in;
                     coord_type px, py, pz, pt;
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( t=0; t<ot; t++ )
                     {
                         for ( z=0; z<oz; z++ )
@@ -256,14 +256,14 @@ namespace Gadgetron
             {
                 long long n;
 
-                #pragma omp parallel default(none) private(n) shared(N, in, out, interp)
+                #pragma omp parallel private(n) shared(N, in, out, interp)
                 {
                     std::vector<size_t> ind_o(ImageType::NDIM);
                     std::vector<coord_type> ind_i(ImageType::NDIM);
 
                     std::vector<coord_type> pos(ImageType::NDIM);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( n=0; n<N; n++ )
                     {
                         out.calculate_index(n, ind_o);
@@ -285,7 +285,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType, typename BoundaryHandlerType> 
+    template<typename ImageType, typename BoundaryHandlerType>
     bool downsampleImageBy2WithAveraging(const ImageType& in, BoundaryHandlerType& bh, ImageType& out)
     {
         typedef typename ImageType::value_type T;
@@ -371,8 +371,8 @@ namespace Gadgetron
                         {
                             long long ix = x<<1;
 
-                            out( (size_t)(x+offset) ) = bh(ix, iy, iz) 
-                                        + ( bh(ix+1, iy, iz) + bh(ix-1, iy, iz) ) 
+                            out( (size_t)(x+offset) ) = bh(ix, iy, iz)
+                                        + ( bh(ix+1, iy, iz) + bh(ix-1, iy, iz) )
                                         + ( bh(ix, iy+1, iz) + bh(ix, iy-1, iz) )
                                         + ( bh(ix, iy, iz+1) + bh(ix, iy, iz-1) );
                         }
@@ -411,8 +411,8 @@ namespace Gadgetron
                             {
                                 long long ix = x<<1;
 
-                                out( (size_t)(x+offset) ) = bh(ix, iy, iz, it) 
-                                            + ( bh(ix+1, iy, iz, it) + bh(ix-1, iy, iz, it) ) 
+                                out( (size_t)(x+offset) ) = bh(ix, iy, iz, it)
+                                            + ( bh(ix+1, iy, iz, it) + bh(ix-1, iy, iz, it) )
                                             + ( bh(ix, iy+1, iz, it) + bh(ix, iy-1, iz, it) )
                                             + ( bh(ix, iy, iz+1, it) + bh(ix, iy, iz-1, it) )
                                             + ( bh(ix, iy, iz, it+1) + bh(ix, iy, iz, it-1) );
@@ -431,12 +431,12 @@ namespace Gadgetron
 
                 long long n;
 
-                #pragma omp parallel default(none) private(n) shared(N, bh, out, dim_out)
+                #pragma omp parallel shared(N, bh, out, dim_out)
                 {
                     std::vector<size_t> ind_out(ImageType::NDIM);
                     std::vector<long long> ind_in(ImageType::NDIM);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( n=0; n<N; n++ )
                     {
                         out.calculate_index(n, ind_out);
@@ -477,7 +477,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType, typename BoundaryHandlerType> 
+    template<typename ImageType, typename BoundaryHandlerType>
     bool expandImageBy2(const ImageType& in, BoundaryHandlerType& bh, ImageType& out)
     {
         typedef typename ImageType::value_type T;
@@ -649,12 +649,12 @@ namespace Gadgetron
 
                 long long n;
 
-                #pragma omp parallel default(none) private(n) shared(N, bh, in, out, interp)
+                #pragma omp parallel private(n) shared(N, bh, in, out, interp)
                 {
                     std::vector<size_t> ind_out(ImageType::NDIM);
                     std::vector<coord_type> ind_in(ImageType::NDIM);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( n=0; n<N; n++ )
                     {
                         out.calculate_index(n, ind_out);
@@ -679,7 +679,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<class ArrayType> 
+    template<class ArrayType>
     bool filterMedian(const ArrayType& img, size_t w[], ArrayType& img_out)
     {
         try
@@ -697,11 +697,11 @@ namespace Gadgetron
 
                 long long n, m, t;
 
-                #pragma omp parallel default(none) private(n, m, t) shared(halfW, N, img, img_out)
+                #pragma omp parallel private(n, m, t) shared(halfW, N, img, img_out)
                 {
                     std::vector<T> buf(2*halfW+1);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( n=0; n<N; n++ )
                     {
                         for ( m=-halfW; m<=halfW; m++ )
@@ -734,11 +734,11 @@ namespace Gadgetron
                 long long medianInd = WX*WY/2;
 
                 long long x, y, tx, ty, hx, hy;
-                #pragma omp parallel default(none) private(x, y, tx, ty, hx, hy) shared(halfX, halfY, sx, sy, WX, WY, pImg, pImgOut, medianInd)
+                #pragma omp parallel private(x, y, tx, ty, hx, hy) shared(halfX, halfY, sx, sy, WX, WY, pImg, pImgOut, medianInd)
                 {
                     std::vector<T> buf(WX*WY);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( y=halfY; y<sy-halfY; y++ )
                     {
                         for ( x=halfX; x<sx-halfX; x++ )
@@ -836,11 +836,11 @@ namespace Gadgetron
                 long long medianInd = WX*WY*WZ/2;
 
                 long long x, y, z, tx, ty, tz, hx, hy, hz;
-                #pragma omp parallel default(none) private(x, y, z, tx, ty, tz, hx, hy, hz) shared(halfX, halfY, halfZ, sx, sy, sz, WX, WY, WZ, pImg, pImgOut, medianInd)
+                #pragma omp parallel private(x, y, z, tx, ty, tz, hx, hy, hz) shared(halfX, halfY, halfZ, sx, sy, sz, WX, WY, WZ, pImg, pImgOut, medianInd)
                 {
                     std::vector<T> buf(WX*WY*WZ);
 
-                    #pragma omp for 
+                    #pragma omp for
                     for ( z=halfZ; z<sz-halfZ; z++ )
                     {
                         for ( y=halfY; y<sy-halfY; y++ )
@@ -957,7 +957,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<class ArrayType> 
+    template<class ArrayType>
     bool filter1D(const ArrayType& img, const hoNDArray<typename realType<typename ArrayType::value_type>::Type>& ker, GT_BOUNDARY_CONDITION bh, ArrayType& img_out)
     {
         try
@@ -1007,7 +1007,7 @@ namespace Gadgetron
                     pBH = &bhMirror;
                 }
 
-                #pragma omp for 
+                #pragma omp for
                 for ( ii=0; ii<num; ii++ )
                 {
                     Array1DType img1D(RO, const_cast<T*>(img.begin()+ii*RO));
@@ -1038,7 +1038,7 @@ namespace Gadgetron
         return true;
     }
 
-    template<typename ImageType> 
+    template<typename ImageType>
     bool gradient(const ImageType& x, ImageType gx[])
     {
         typedef typename ImageType::value_type T;
@@ -1149,7 +1149,7 @@ namespace Gadgetron
                     long long z_positive, z_negative, y_positive, y_negative;
                     size_t offset, offset_z_positive, offset_z_negative, offset_y_positive, offset_y_negative;
 
-#pragma omp for 
+#pragma omp for
                     for ( z=0; z<sz; z++ )
                     {
                         z_positive = z+1;
@@ -1212,7 +1212,7 @@ namespace Gadgetron
                     bool inside = true;
                     unsigned int ii;
 
-#pragma omp for 
+#pragma omp for
                     for ( n=0; n<(long long)N; n++ )
                     {
                         x.calculate_index(n, ind);
@@ -1269,7 +1269,7 @@ namespace Gadgetron
         return true;
     }
 
-    template <typename T> 
+    template <typename T>
     bool gaussianKernel(T sigma, double kerWidthInUnitOfSigma, double deltaKer, hoNDArray<T>& ker)
     {
         try
@@ -1387,7 +1387,7 @@ namespace Gadgetron
         }
     }
 
-    template<class ArrayType, class T2> 
+    template<class ArrayType, class T2>
     bool filterGaussian(ArrayType& img, T2 sigma[], typename ArrayType::value_type* mem)
     {
         try
@@ -1456,7 +1456,7 @@ namespace Gadgetron
                         {
                             T* mem = new T[2*sx];
 
-                            // #pragma omp for 
+                            // #pragma omp for
                             for ( y=0; y<sy; y++ )
                             {
                                 Gadgetron::DericheSmoothing(pData+y*sx, sx, mem, sigma[0]);
@@ -1473,7 +1473,7 @@ namespace Gadgetron
                         {
                             T* mem = new T[2*sy];
 
-                            // #pragma omp for 
+                            // #pragma omp for
                             for ( x=0; x<sx; x++ )
                             {
                                 Gadgetron::DericheSmoothing(pData+x, sy, mem, sigma[1], sx);
@@ -1501,7 +1501,7 @@ namespace Gadgetron
                 {
                     T* mem = new T[2*sx];
 
-#pragma omp for 
+#pragma omp for
                     for ( z=0; z<sz; z++ )
                     {
                         for ( y=0; y<sy; y++ )
@@ -1522,7 +1522,7 @@ namespace Gadgetron
                     T* buf = new T[3*sy];
                     T* mem = buf + sy;
 
-#pragma omp for 
+#pragma omp for
                     for ( z=0; z<sz; z++ )
                     {
                         for ( x=0; x<sx; x++ )
@@ -1555,7 +1555,7 @@ namespace Gadgetron
                     T* buf = new T[3*sz];
                     T* mem = buf + sz;
 
-#pragma omp for 
+#pragma omp for
                     for ( y=0; y<sy; y++ )
                     {
                         for ( x=0; x<sx; x++ )
@@ -1598,7 +1598,7 @@ namespace Gadgetron
                 {
                     T* mem = new T[2*sx];
 
-#pragma omp for 
+#pragma omp for
                     for ( t=0; t<st; t++ )
                     {
                         for ( z=0; z<sz; z++ )
@@ -1622,7 +1622,7 @@ namespace Gadgetron
                     T* buf = new T[3*sy];
                     T* mem = buf + sy;
 
-#pragma omp for 
+#pragma omp for
                     for ( t=0; t<st; t++ )
                     {
                         for ( z=0; z<sz; z++ )
@@ -1658,7 +1658,7 @@ namespace Gadgetron
                     T* buf = new T[3*sz];
                     T* mem = buf + sz;
 
-#pragma omp for 
+#pragma omp for
                     for ( t=0; t<st; t++ )
                     {
                         for ( y=0; y<sy; y++ )
@@ -1694,7 +1694,7 @@ namespace Gadgetron
                     T* buf = new T[3*st];
                     T* mem = buf + st;
 
-#pragma omp for 
+#pragma omp for
                     for ( z=0; z<sz; z++ )
                     {
                         for ( y=0; y<sy; y++ )
@@ -1754,7 +1754,7 @@ namespace Gadgetron
                         {
                             T* mem = new T[ 2*dim[0] ];
 
-#pragma omp for 
+#pragma omp for
                             for ( n=0; n<num; n++ )
                             {
                                 Gadgetron::DericheSmoothing(pData+n*dim[0], dim[0], mem, sigma[0]);
@@ -1784,7 +1784,7 @@ namespace Gadgetron
                             std::vector<size_t> offsetFactorCurr(D-1);
                             NDArray<T>::calculate_offset_factors(dimCurr, offsetFactorCurr);
 
-#pragma omp parallel default(none) private(n) shared(D, num, dim, img, pData, sigma, ii, offsetFactor, offsetFactorCurr)
+#pragma omp parallel private(n) shared(D, num, dim, img, pData, sigma, ii, offsetFactor, offsetFactorCurr)
                             {
                                 T* buf = new T[ 3*dim[ii] ];
                                 T* mem = buf + dim[ii];
@@ -1794,7 +1794,7 @@ namespace Gadgetron
 
                                 std::vector<size_t> offset(dim[ii]);
 
-#pragma omp for 
+#pragma omp for
                                 for ( n=0; n<num; n++ )
                                 {
                                     NDArray<T>::calculate_index(n, offsetFactorCurr, indCurr);

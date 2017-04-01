@@ -5,14 +5,14 @@
 
     References to the implementation can be found in:
 
-    Lustig M, Pauly JM. 
-    SPIRiT: Iterative self-consistent parallel imaging reconstruction from arbitrary k-space. 
+    Lustig M, Pauly JM.
+    SPIRiT: Iterative self-consistent parallel imaging reconstruction from arbitrary k-space.
     Magnetic Resonance in Medicine 2010;64(2):457-471.
 
     ISMRM 2013 sunrise course on Parallel Imaging
     Michael S. Hansen, Philip Beatty
     http://gadgetron.sourceforge.net/sunrise/
-    http://cds.ismrm.org/protected/13MPresentations/abstracts/7059.pdf 
+    http://cds.ismrm.org/protected/13MPresentations/abstracts/7059.pdf
 */
 
 #include "mri_core_spirit.h"
@@ -32,7 +32,7 @@
 namespace Gadgetron
 {
 
-template <typename T> 
+template <typename T>
 void spirit2d_calib_convolution_kernel(const hoNDArray<T>& acsSrc, const hoNDArray<T>& acsDst,
                                     double thres, size_t kRO, size_t kE1, size_t oRO, size_t oE1,
                                     size_t startRO, size_t endRO, size_t startE1, size_t endE1,
@@ -73,7 +73,7 @@ template EXPORTMRICORE void spirit2d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit2d_calib_convolution_kernel(const hoNDArray<T>& acsSrc, const hoNDArray<T>& acsDst,
     double thres, size_t kRO, size_t kE1, size_t oRO, size_t oE1, hoNDArray<T>& convKer, bool minusI)
 {
@@ -99,7 +99,7 @@ template EXPORTMRICORE void spirit2d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit2d_calib_convolution_kernel(const hoNDArray<T>& dataSrc, const hoNDArray<T>& dataDst,
                                     hoNDArray<unsigned short>& dataMask, double thres,
                                     size_t kRO, size_t kE1, size_t oRO, size_t oE1, hoNDArray<T>& convKer, bool minusI)
@@ -152,7 +152,7 @@ template EXPORTMRICORE void spirit2d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit2d_image_domain_kernel(const hoNDArray<T>& convKer, size_t RO, size_t E1, hoNDArray<T>& kIm)
 {
     try
@@ -172,9 +172,9 @@ template EXPORTMRICORE void spirit2d_image_domain_kernel(const hoNDArray< std::c
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_calib(const hoNDArray<T>& acsSrc, const hoNDArray<T>& acsDst,
-                double thres, double overDetermineRatio, 
+                double thres, double overDetermineRatio,
                 size_t kRO, size_t kE1, size_t kE2,
                 size_t oRO, size_t oE1, size_t oE2,
                 size_t startRO, size_t endRO, size_t startE1, size_t endE1, size_t startE2, size_t endE2,
@@ -457,7 +457,7 @@ template EXPORTMRICORE void spirit3d_calib(const hoNDArray< std::complex<double>
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_convert_to_convolution_kernel(const hoNDArray<T>& ker, size_t kRO, size_t kE1, size_t kE2, size_t oRO, size_t oE1, size_t oE2, hoNDArray<T>& convKer, bool minusI)
 {
     try
@@ -600,7 +600,7 @@ template <typename T> void spirit3d_convert_to_convolution_kernel(const hoNDArra
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_calib_convolution_kernel(const hoNDArray<T>& acsSrc, const hoNDArray<T>& acsDst,
                                     double thres, double overDetermineRatio,
                                     size_t kRO, size_t kE1, size_t kE2,
@@ -627,7 +627,7 @@ template EXPORTMRICORE void spirit3d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_calib_convolution_kernel(const hoNDArray<T>& acsSrc, const hoNDArray<T>& acsDst,
                                     double thres, double overDetermineRatio,
                                     size_t kRO, size_t kE1, size_t kE2,
@@ -658,7 +658,7 @@ template EXPORTMRICORE void spirit3d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_calib_convolution_kernel(const hoNDArray<T>& dataSrc, const hoNDArray<T>& dataDst, hoNDArray<unsigned short>& dataMask,
                                     double thres, double overDetermineRatio,
                                     size_t kRO, size_t kE1, size_t kE2,
@@ -721,7 +721,7 @@ template EXPORTMRICORE void spirit3d_calib_convolution_kernel(const hoNDArray< s
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit3d_image_domain_kernel(const hoNDArray<T>& convKer, size_t RO, size_t E1, size_t E2, hoNDArray<T>& kIm, bool preset_kIm_with_zeros)
 {
     try
@@ -794,7 +794,7 @@ template EXPORTMRICORE void spirit3d_kspace_image_domain_kernel(const hoNDArray<
 
 // ------------------------------------------------------------------------
 
-template<typename T> 
+template<typename T>
 void spirit3d_image_domain_kernel(const hoNDArray<T>& kImRO, size_t E1, size_t E2, hoNDArray<T>& kIm)
 {
     try
@@ -827,7 +827,7 @@ template EXPORTMRICORE void spirit3d_image_domain_kernel(const hoNDArray< std::c
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit_image_domain_adjoint_kernel(const hoNDArray<T>& kIm, hoNDArray<T>& adjkIm)
 {
     try
@@ -871,7 +871,7 @@ template EXPORTMRICORE void spirit_image_domain_adjoint_kernel(const hoNDArray< 
 
 // ------------------------------------------------------------------------
 
-template <typename T> 
+template <typename T>
 void spirit_adjoint_forward_kernel(const hoNDArray<T>& kImS2D, const hoNDArray<T>& kImD2S, hoNDArray<T>& kIm)
 {
     try
@@ -896,7 +896,7 @@ void spirit_adjoint_forward_kernel(const hoNDArray<T>& kImS2D, const hoNDArray<T
         size_t N = kImS2D.get_number_of_elements() / srcCHA / dstCHA;
 
         long long d;
-    #pragma omp parallel default(none) private(d) shared(N, dstCHA, srcCHA, kIm, kImS2D, kImD2S) num_threads( (int)dstCHA ) if (dstCHA > 4)
+    #pragma omp parallel private(d) shared(N, dstCHA, srcCHA, kIm, kImS2D, kImD2S) num_threads( (int)dstCHA ) if (dstCHA > 4)
         {
             hoNDArray<T> ker(N);
 
