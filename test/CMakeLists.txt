@@ -37,7 +37,7 @@ link_libraries(
     gadgetron_toolbox_cpucore_math
     gadgetron_toolbox_cpufft
     gadgetron_toolbox_cpudwt
-    gadgetron_toolbox_image
+    gadgetron_toolbox_cpu_image
     ${BOOST_LIBRARIES}
     ${GTEST_LIBRARIES} 
     ${ARMADILLO_LIBRARIES}
