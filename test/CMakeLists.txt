@@ -55,7 +55,7 @@ if ( CUDA_FOUND )
       hoNDFFT_test.cpp
       hoNDWavelet_test.cpp
       curveFitting_test.cpp 
-      image_processing_morphology_test.cpp 
+      image_morphology_test.cpp 
       vector_td_test.cpp
       cuNDArray_elemwise_test.cpp 
       cuNDArray_operators_test.cpp 
