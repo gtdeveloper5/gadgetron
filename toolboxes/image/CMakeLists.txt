@@ -12,4 +12,4 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/toolboxes/image/cpu
     )
 
-subdir(cpu)
+add_subdirectory(cpu)

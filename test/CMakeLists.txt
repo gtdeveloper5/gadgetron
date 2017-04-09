@@ -20,6 +20,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/toolboxes/operators
   ${CMAKE_SOURCE_DIR}/toolboxes/operators/cpu
   ${CMAKE_SOURCE_DIR}/toolboxes/image
+  ${CMAKE_SOURCE_DIR}/toolboxes/image/cpu
   ${Boost_INCLUDE_DIR}
   ${ARMADILLO_INCLUDE_DIRS}
   ${GTEST_INCLUDE_DIRS}
