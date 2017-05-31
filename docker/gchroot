@@ -68,7 +68,7 @@ function mount_safe {
   MOUNT_POINT=$1
   MOUNT_DIR=$2
 
-  echo  $MOUNT_POINT
+  #echo  $MOUNT_POINT
   mkdir -p $MOUNT_POINT
   if find $MOUNT_POINT -maxdepth 0 -empty | read v; then
     mount --bind $MOUNT_DIR $MOUNT_POINT
