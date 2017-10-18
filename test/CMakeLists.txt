@@ -11,6 +11,8 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/toolboxes/core/cpu
   ${CMAKE_SOURCE_DIR}/toolboxes/fft/cpu
   ${CMAKE_SOURCE_DIR}/toolboxes/fft/gpu
+  ${CMAKE_SOURCE_DIR}/toolboxes/nfft/cpu
+  ${CMAKE_SOURCE_DIR}/toolboxes/nfft/gpu
   ${CMAKE_SOURCE_DIR}/toolboxes/dwt/cpu
   ${CMAKE_SOURCE_DIR}/toolboxes/core/cpu/image
   ${CMAKE_SOURCE_DIR}/toolboxes/core/cpu/math
@@ -44,6 +46,7 @@ link_libraries(
     gadgetron_toolbox_cpucore 
     gadgetron_toolbox_cpucore_math
     gadgetron_toolbox_cpufft
+    gadgetron_toolbox_cpunfft
     gadgetron_toolbox_cpudwt
     gadgetron_toolbox_cpu_image
     gadgetron_toolbox_cpucore
@@ -66,6 +69,7 @@ set(test_src_files tests.cpp
       hoNDArray_utils_test.cpp 
       hoNDArray_reductions_test.cpp 
       hoNDFFT_test.cpp
+      hoNFFT_test.cpp
       hoNDWavelet_test.cpp
       curveFitting_test.cpp
       image_morphology_test.cpp 
