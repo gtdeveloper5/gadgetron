@@ -30,7 +30,7 @@ class CineContouring(Gadget):
 
     def process(self, header, image, metadata=None):
 
-        print("Receiving image, phase ", header.phase, ", slice ", header.slice)
+        print("Receiving image__, phase ", header.phase, ", slice ", header.slice)
 
         # buffer incoming images
         self.images.append(image)
@@ -39,7 +39,7 @@ class CineContouring(Gadget):
             # deserialize metadata
             curr_meta = ismrmrd.Meta.deserialize(metadata)
             self.metas.append(curr_meta)
-            print(metadata)
+            #print(metadata)
 
         # if all images are received
         if header.slice<self.slc-1 or header.phase<self.phs_retro-1:
