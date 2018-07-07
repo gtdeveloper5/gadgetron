@@ -237,7 +237,83 @@ namespace Gadgetron {
             return GADGET_OK;
         }
 
-        template <typename H, typename D> int process(GadgetContainerMessage<H>* hmb,
+        int process_ismrmrd_acquisition(GadgetContainerMessage<ISMRMRD::AcquisitionHeader>* hmb,
+            GadgetContainerMessage< hoNDArray< std::complex<float> > >* dmb)
+        {
+            if (!dmb) {
+                GERROR("Received null pointer to data block");
+                return GADGET_FAIL;
+            }
+
+            while (this->next()->msg_queue()->is_full()) {
+                ACE_Time_Value tv(0, 10000);
+                ACE_OS::sleep(tv);
+            }
+
+            ISMRMRD::AcquisitionHeader head = *hmb->getObjectPtr();
+            hoNDArray< std::complex<float> > *data = dmb->getObjectPtr();
+
+            GILLock lock;
+            try {
+                boost::python::object process_fn = class_.attr("process");
+                int res;
+                res = boost::python::extract<int>(process_fn(head, data));
+
+                if (res != GADGET_OK) {
+                    GDEBUG("Gadget (%s) Returned from python call with error\n",
+                        this->module()->name());
+                    return GADGET_FAIL;
+                }
+                //Else we are done with this now.
+                hmb->release();
+            }
+            catch (boost::python::error_already_set const &) {
+                GDEBUG("process_ismrmrd_acquisition, passing data on to python module failed\n");
+                PyErr_Print();
+                return GADGET_FAIL;
+            }
+            return GADGET_OK;
+        }
+
+        int process_ismrmrd_waveform(GadgetContainerMessage<ISMRMRD::ISMRMRD_WaveformHeader>* hmb,
+            GadgetContainerMessage< hoNDArray< uint32_t > >* dmb)
+        {
+            if (!dmb) {
+                GERROR("Received null pointer to data block");
+                return GADGET_FAIL;
+            }
+
+            while (this->next()->msg_queue()->is_full()) {
+                ACE_Time_Value tv(0, 10000);
+                ACE_OS::sleep(tv);
+            }
+
+            ISMRMRD::ISMRMRD_WaveformHeader head = *hmb->getObjectPtr();
+            hoNDArray< uint32_t > *data = dmb->getObjectPtr();
+
+            GILLock lock;
+            try {
+                boost::python::object process_fn = class_.attr("process");
+                int res;
+                res = boost::python::extract<int>(process_fn(head, data));
+
+                if (res != GADGET_OK) {
+                    GDEBUG("Gadget (%s) Returned from python call with error\n",
+                        this->module()->name());
+                    return GADGET_FAIL;
+                }
+                //Else we are done with this now.
+                hmb->release();
+            }
+            catch (boost::python::error_already_set const &) {
+                GDEBUG("process_ismrmrd_waveform, passing data on to python module failed\n");
+                PyErr_Print();
+                return GADGET_FAIL;
+            }
+            return GADGET_OK;
+        }
+
+        template <typename D> int process_ismrmrd_image(GadgetContainerMessage<ISMRMRD::ImageHeader>* hmb,
             GadgetContainerMessage< hoNDArray< D > >* dmb,
             GadgetContainerMessage< ISMRMRD::MetaContainer>* mmb = nullptr)
         {
@@ -260,7 +336,7 @@ namespace Gadgetron {
                 ACE_OS::sleep(tv);
             }
 
-            H head = *hmb->getObjectPtr();
+            ISMRMRD::ImageHeader head = *hmb->getObjectPtr();
             hoNDArray< D > *data = dmb->getObjectPtr();
             ISMRMRD::MetaContainer* meta = 0;
             if (mmb) {
@@ -294,8 +370,6 @@ namespace Gadgetron {
             }
             return GADGET_OK;
         }
-
-
 
         virtual int process(ACE_Message_Block* mb);
 

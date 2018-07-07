@@ -14,8 +14,7 @@ namespace Gadgetron {
                 hma->release();
                 return GADGET_FAIL;;
             }
-            GadgetContainerMessage< ISMRMRD::MetaContainer>* mmb = AsContainerMessage< ISMRMRD::MetaContainer >(dmb->cont());
-            return this->process(hma, dmb, mmb);
+            return this->process_ismrmrd_acquisition(hma, dmb);
         }
         else
         {
@@ -44,9 +43,8 @@ namespace Gadgetron {
         {
             if (auto waveform_header = AsContainerMessage<ISMRMRD::ISMRMRD_WaveformHeader>(mb)){
                 if (auto waveform_data = AsContainerMessage<hoNDArray<uint32_t>>(mb->cont())){
-                    return this->process(waveform_header,waveform_data);
+                    return this->process_ismrmrd_waveform(waveform_header,waveform_data);
                 }
-
             }
         }
 
@@ -72,28 +70,28 @@ namespace Gadgetron {
 
         switch (h->data_type) {
         case (ISMRMRD::ISMRMRD_USHORT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< uint16_t > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< uint16_t > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_SHORT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< int16_t > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< int16_t > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_UINT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< uint32_t > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< uint32_t > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_INT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< int32_t > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< int32_t > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_FLOAT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< float > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< float > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_DOUBLE):
-            return this->process(hmi, AsContainerMessage< hoNDArray< double > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< double > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_CXFLOAT):
-            return this->process(hmi, AsContainerMessage< hoNDArray< std::complex<float> > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< std::complex<float> > >(hmi->cont()), mmb);
             break;
         case (ISMRMRD::ISMRMRD_CXDOUBLE):
-            return this->process(hmi, AsContainerMessage< hoNDArray< std::complex<double> > >(hmi->cont()), mmb);
+            return this->process_ismrmrd_image(hmi, AsContainerMessage< hoNDArray< std::complex<double> > >(hmi->cont()), mmb);
             break;
         default:
             GERROR("Unknown image data_type %d received\n", h->data_type);
