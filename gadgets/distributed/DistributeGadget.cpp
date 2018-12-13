@@ -60,7 +60,26 @@ namespace Gadgetron {
         if (node_index < 0)
         {
             GERROR("Negative node index received");
-            return GADGET_FAIL;
+
+            if (use_this_node_for_compute.value())
+            {
+                if (this->next()->putq(m) == -1)
+                {
+                    m->release();
+                    GERROR("DistributeGadget::process, passing data on to next gadget\n");
+                    return GADGET_FAIL;
+                }
+                else
+                {
+                    return GADGET_OK;
+                }
+            }
+            else
+            {
+                m->release();
+            }
+
+            return GADGET_OK;
         }
 
         //If we are not supposed to use this node for compute, add one to make sure we are not on node 0
