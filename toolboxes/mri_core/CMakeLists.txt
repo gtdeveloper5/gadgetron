@@ -27,7 +27,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/toolboxes/solvers/cpu
     ${CMAKE_SOURCE_DIR}/toolboxes/core/cpu/math 
     ${CMAKE_SOURCE_DIR}/toolboxes/image_io
-    ${CMAKE_BINARY_DIR}/toolboxes/mri_core
+    ${CMAKE_SOURCE_DIR}/toolboxes/mri_core
 )
 
 set( mri_core_header_files
@@ -89,7 +89,7 @@ if (Boost_PYTHON3_FOUND AND PYTHONLIBS_FOUND AND NUMPY_FOUND)
                 mri_core_grappa_python.cpp
                 mri_core_python.cpp )
 
-        target_link_libraries(gadgetron_toolbox_mri_core_python
+      target_link_libraries(gadgetron_toolbox_mri_core_python
                 gadgetron_toolbox_cpucore 
                 gadgetron_toolbox_cpucore_math
                 ${ARMADILLO_LIBRARIES} 
