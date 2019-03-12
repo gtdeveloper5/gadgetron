@@ -27,6 +27,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/toolboxes/solvers/cpu
     ${CMAKE_SOURCE_DIR}/toolboxes/core/cpu/math 
     ${CMAKE_SOURCE_DIR}/toolboxes/image_io
+    ${CMAKE_BINARY_DIR}/toolboxes/mri_core
 )
 
 set( mri_core_header_files
