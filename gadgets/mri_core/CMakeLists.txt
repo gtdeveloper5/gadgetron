@@ -16,6 +16,7 @@ endif()
 
 set(gadgetron_mricore_header_files GadgetMRIHeaders.h
         NoiseAdjustGadget.h
+        CoilSenMapGadget.h
         PCACoilGadget.h
         RateLimitGadget.h
         AcquisitionPassthroughGadget.h
@@ -88,6 +89,7 @@ set(gadgetron_mricore_header_files GadgetMRIHeaders.h
 set(gadgetron_mricore_src_files
         AcquisitionPassthroughGadget.cpp
         NoiseAdjustGadget.cpp
+        CoilSenMapGadget.cpp
         PCACoilGadget.cpp
         AccumulatorGadget.cpp
         FFTGadget.cpp
@@ -163,6 +165,7 @@ set(gadgetron_mricore_config_files
         config/default_optimized.xml
         config/default_measurement_dependencies.xml
         config/default_measurement_dependencies_ismrmrd_storage.xml
+        config/default_measurement_dependencies_Noise_CoilSen_SCC.xml
         config/isalive.xml
         config/gtquery.xml
         config/Generic_Cartesian_FFT.xml
