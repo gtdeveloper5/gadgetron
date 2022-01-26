@@ -58,7 +58,7 @@ namespace Gadgetron {
                                                                                             << num_encoding_spaces_);
         }
 
-        GadgetContainerMessage< std::vector<ISMRMRD::Waveform> > * wav = AsContainerMessage< std::vector<ISMRMRD::Waveform>  >(m1->cont());
+        GadgetContainerMessage<std::vector<Core::Waveform>>* wav = AsContainerMessage<std::vector<Core::Waveform>>(m1->cont());
         if (wav)
         {
             if (verbose.value())
@@ -201,22 +201,8 @@ namespace Gadgetron {
 
                 // ---------------------------------------------------------------
                 // pass down waveform
-                if(wav) recon_obj_[e].recon_res_.waveform_ = *wav->getObjectPtr();
+                if (wav) recon_obj_[e].recon_res_.waveform_ =  this->set_wave_form_to_image_array(*wav->getObjectPtr());
                 recon_obj_[e].recon_res_.acq_headers_ = recon_bit_->rbit_[e].data_.headers_;
-
-                // ---------------------------------------------------------------
-
-                if (!debug_folder_full_path_.empty()) {
-                    this->gt_exporter_.export_array_complex(recon_obj_[e].recon_res_.data_,
-                                                            debug_folder_full_path_ + "recon_res" + os.str());
-                }
-
-                if (perform_timing.value()) {
-                    gt_timer_.start("GenericReconCartesianGrappaGadget::send_out_image_array");
-                }
-                this->send_out_image_array(recon_obj_[e].recon_res_, e,
-                                           image_series.value() + ((int) e + 1), GADGETRON_IMAGE_REGULAR);
-                if (perform_timing.value()) { gt_timer_.stop(); }
 
                 // ---------------------------------------------------------------
                 if (send_out_gfactor.value() && recon_obj_[e].gfactor_.get_number_of_elements() > 0 &&
@@ -268,6 +254,20 @@ namespace Gadgetron {
                         if (perform_timing.value()) { gt_timer_.stop(); }
                     }
                 }
+
+                // ---------------------------------------------------------------
+
+                if (!debug_folder_full_path_.empty()) {
+                    this->gt_exporter_.export_array_complex(recon_obj_[e].recon_res_.data_,
+                        debug_folder_full_path_ + "recon_res" + os.str());
+                }
+
+                if (perform_timing.value()) {
+                    gt_timer_.start("GenericReconCartesianGrappaGadget::send_out_image_array");
+                }
+                this->send_out_image_array(recon_obj_[e].recon_res_, e,
+                    image_series.value() + ((int)e + 1), GADGETRON_IMAGE_REGULAR);
+                if (perform_timing.value()) { gt_timer_.stop(); }
             }
 
             recon_obj_[e].recon_res_.data_.clear();
@@ -608,7 +608,7 @@ namespace Gadgetron {
         float effective_acce_factor(1), snr_scaling_ratio(1);
         this->compute_snr_scaling_factor(recon_bit, effective_acce_factor, snr_scaling_ratio);
         if (effective_acce_factor > 1) {
-            // since the grappa in gadgetron is doing signal preserving scaling, to perserve noise level, we need this compensation factor
+            // since the grappa in gadgetron is doing signal preserving scaling, to preserve noise level, we need this compensation factor
             double grappaKernelCompensationFactor = 1.0 / (acceFactorE1_[e] * acceFactorE2_[e]);
             Gadgetron::scal((float) (grappaKernelCompensationFactor * snr_scaling_ratio), complex_im_recon_buf_);
 

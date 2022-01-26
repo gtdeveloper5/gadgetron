@@ -95,6 +95,80 @@ namespace Gadgetron {
             }
         }
 
+        if (!h.acquisitionSystemInformation->systemFieldStrength_T)
+        {
+            system_field_strength_T_ = 1.5;
+        }
+        else
+        {
+            system_field_strength_T_ = h.acquisitionSystemInformation.get().systemFieldStrength_T.get();
+        }
+
+        protocol_name_ = "Unknown";
+
+        if (!h.measurementInformation)
+        {
+            GDEBUG("measurementInformation not found in header");
+        }
+        else
+        {
+            if (!h.measurementInformation->protocolName)
+            {
+                GDEBUG("measurementInformation->protocolName not found in header");
+            }
+            else
+            {
+                protocol_name_ = h.measurementInformation.get().protocolName.get();
+            }
+        }
+
+        std::string measurement_id = "";
+        if (h.measurementInformation)
+        {
+            if (h.measurementInformation->measurementID)
+            {
+                measurement_id = *h.measurementInformation->measurementID;
+            }
+
+            patient_position_ = h.measurementInformation->patientPosition;
+        }
+
+        this->measurement_id_ = measurement_id;
+
+        // analyze measurement id
+        if (measurement_id.size() > 0)
+        {
+            std::string mid = measurement_id;
+            size_t ind = mid.find("_");
+            if (ind != std::string::npos)
+            {
+                device_ = mid.substr(0, ind);
+                mid = mid.substr(ind + 1, std::string::npos);
+
+                ind = mid.find("_");
+                if (ind != std::string::npos)
+                {
+                    patient_ = mid.substr(0, ind);
+                    mid = mid.substr(ind + 1, std::string::npos);
+
+                    ind = mid.find("_");
+                    if (ind != std::string::npos)
+                    {
+                        study_ = mid.substr(0, ind);
+                        measurement_ = mid.substr(ind + 1, std::string::npos);
+                    }
+                }
+            }
+        }
+
+        if (h.acquisitionSystemInformation)
+        {
+            if (h.acquisitionSystemInformation->systemVendor)
+            {
+                vendor_ = *h.acquisitionSystemInformation->systemVendor;
+            }
+        }
+
         return GADGET_OK;
     }
 
@@ -412,6 +486,16 @@ namespace Gadgetron {
                     // for every kspace, find the recorded header which is closest to the kspace center [E1/2 E2/2]
                     ISMRMRD::AcquisitionHeader acq_header;
 
+                    // for every kspace, find the min and max of acquisition time, find the min and max of physio time
+                    uint32_t min_acq_time(std::numeric_limits<uint32_t>::max()),
+                        max_acq_time(0);
+
+                    uint32_t min_physio_time[ISMRMRD::ISMRMRD_PHYS_STAMPS], max_physio_time[ISMRMRD::ISMRMRD_PHYS_STAMPS];
+                    for (size_t ii = 0; ii < ISMRMRD::ISMRMRD_PHYS_STAMPS; ii++) {
+                        min_physio_time[ii] = std::numeric_limits<uint32_t>::max();
+                        max_physio_time[ii] = 0;
+                    }
+
                     long long bestE1 = E1 + 1;
                     long long bestE2 = E2 + 1;
 
@@ -419,6 +503,22 @@ namespace Gadgetron {
                     for (e2 = 0; e2 < header_E2; e2++) {
                         for (e1 = 0; e1 < header_E1; e1++) {
                             ISMRMRD::AcquisitionHeader& curr_header = recon_bit.data_.headers_(e1, e2, n, s, slc);
+
+                            if (curr_header.acquisition_time_stamp>0) {
+                                if (min_acq_time > curr_header.acquisition_time_stamp)
+                                    min_acq_time = curr_header.acquisition_time_stamp;
+
+                                if (max_acq_time < curr_header.acquisition_time_stamp)
+                                    max_acq_time = curr_header.acquisition_time_stamp;
+
+                                for (size_t ii = 0; ii < ISMRMRD::ISMRMRD_PHYS_STAMPS; ii++) {
+                                    if (min_physio_time[ii] > curr_header.physiology_time_stamp[ii])
+                                        min_physio_time[ii] = curr_header.physiology_time_stamp[ii];
+
+                                    if (max_physio_time[ii] < curr_header.physiology_time_stamp[ii])
+                                        max_physio_time[ii] = curr_header.physiology_time_stamp[ii];
+                                }
+                            }
 
                             long long e1_in_bucket = curr_header.idx.kspace_encode_step_1 + space_matrix_offset_E1_[e];
 
@@ -448,7 +548,6 @@ namespace Gadgetron {
 
                     im_header.version         = acq_header.version;
                     im_header.data_type       = ISMRMRD::ISMRMRD_CXFLOAT;
-                    im_header.flags           = acq_header.flags;
                     im_header.measurement_uid = acq_header.measurement_uid;
 
                     im_header.matrix_size[0] = (uint16_t)RO;
@@ -559,7 +658,40 @@ namespace Gadgetron {
                     meta.append("physiology_time_stamp", (long)res.headers_(n, s, slc).physiology_time_stamp[1]);
                     meta.append("physiology_time_stamp", (long)res.headers_(n, s, slc).physiology_time_stamp[2]);
 
+                    meta.set("acquisition_time_range", (long)min_acq_time);
+                    meta.append("acquisition_time_range", (long)max_acq_time);
+
+                    meta.set("physiology_time_range", (long)min_physio_time[0]);
+                    meta.append("physiology_time_range", (long)max_physio_time[0]);
+                    meta.append("physiology_time_range", (long)min_physio_time[1]);
+                    meta.append("physiology_time_range", (long)max_physio_time[1]);
+                    meta.append("physiology_time_range", (long)min_physio_time[2]);
+                    meta.append("physiology_time_range", (long)max_physio_time[2]);
+
+                    size_t ui;
+                    for (ui = 0; ui < ISMRMRD::ISMRMRD_USER_INTS; ui++)
+                    {
+                        std::ostringstream str;
+                        str << "user_int_" << ui;
+                        meta.append(str.str().c_str(), (long)res.headers_(n, s, slc).user_int[ui]);
+                    }
+
+                    for (ui = 0; ui < ISMRMRD::ISMRMRD_USER_FLOATS; ui++)
+                    {
+                        std::ostringstream str;
+                        str << "user_float_" << ui;
+                        meta.append(str.str().c_str(), (long)res.headers_(n, s, slc).user_float[ui]);
+                    }
+
                     meta.set("gadgetron_sha1", GADGETRON_SHA1);
+
+                    meta.set("measurementID", this->measurement_id_.c_str());
+                    meta.set("protocolName", this->protocol_name_.c_str());
+                    meta.set("patientID", this->patient_.c_str());
+                    meta.set("studyID", this->study_.c_str());
+                    meta.set("measurementNumber", this->measurement_.c_str());
+                    meta.set("deviceID", this->device_.c_str());
+                    meta.set("patient_position", this->patient_position_.c_str());
                 }
             }
         }
@@ -619,10 +751,23 @@ namespace Gadgetron {
             GWARN_STREAM("Cannot find any sampled lines ... ");
         }
     }
+
     void GenericReconGadget::send_out_image_array(
         IsmrmrdImageArray& res, size_t encoding, int series_num, const std::string& data_role) {
         this->prepare_image_array(res, encoding, series_num, data_role);
         this->next()->putq(new GadgetContainerMessage<IsmrmrdImageArray>(res));
+    }
+
+    std::vector<ISMRMRD::Waveform> GenericReconGadget::set_wave_form_to_image_array(const std::vector<Core::Waveform>& w_in) {
+        
+        std::vector<ISMRMRD::Waveform> waveforms;
+        waveforms.reserve(w_in.size());
+        for (const auto& [header, data]: w_in) {
+            ISMRMRD::Waveform& a_w = waveforms.emplace_back(header.number_of_samples,header.channels);
+            a_w.head = header;
+            std::copy_n(data.data(),data.size(), a_w.data);
+        }
+        return waveforms;
     }
 
     GADGET_FACTORY_DECLARE(GenericReconGadget)

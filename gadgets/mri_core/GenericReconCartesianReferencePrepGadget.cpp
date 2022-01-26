@@ -108,6 +108,16 @@ namespace Gadgetron {
             GWARN_STREAM("Incoming recon_bit has more encoding spaces than the protocol : " << recon_bit_->rbit_.size() << " instead of " << num_encoding_spaces_);
         }
 
+        GadgetContainerMessage<std::vector<Core::Waveform>>* wav =
+            AsContainerMessage<std::vector<Core::Waveform>>(m1->cont());
+        if (wav)
+        {
+            if (verbose.value())
+            {
+                GDEBUG_STREAM("Incoming recon_bit with " << wav->getObjectPtr()->size() << " wave form samples ");
+            }
+        }
+
         // a data buffer for N and S selection
         hoNDArray< std::complex<float> > ref_selected_N_S;
 
@@ -268,7 +278,7 @@ namespace Gadgetron {
                 end_E2 = std::get<1>(t);
             }
 
-            // crop the ref_calib, along RO, E1 and E2 for seperate or embedded mode
+            // crop the ref_calib, along RO, E1 and E2 for separate or embedded mode
             vector_td<size_t, 3> crop_offset;
             crop_offset[0] = sampling_limits[0].min_;
             crop_offset[1] = start_E1;
@@ -319,7 +329,7 @@ namespace Gadgetron {
             }
             else
             {
-                // sepearate, embedded mode, the ref center is the kspace center
+                // separate, embedded mode, the ref center is the kspace center
                 sampling_limits[1].center_ = (sampling_limits[1].max_ + 1) / 2;
                 sampling_limits[2].center_ = (sampling_limits[2].max_ + 1) / 2;
             }

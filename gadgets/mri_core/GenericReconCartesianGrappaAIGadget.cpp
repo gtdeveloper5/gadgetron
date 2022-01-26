@@ -47,7 +47,7 @@ namespace Gadgetron {
                 << num_encoding_spaces_);
         }
 
-        GadgetContainerMessage< std::vector<ISMRMRD::Waveform> > * wav = AsContainerMessage< std::vector<ISMRMRD::Waveform>  >(m1->cont());
+        GadgetContainerMessage<std::vector<Core::Waveform>>* wav = AsContainerMessage<std::vector<Core::Waveform>>(m1->cont());
         if (wav)
         {
             if (verbose.value())
@@ -123,7 +123,6 @@ namespace Gadgetron {
                 if (perform_timing.value()) { gt_timer_.stop(); }
                 // ---------------------------------------------------------------
 
-                recon_bit_->rbit_[e].ref_->clear();
                 recon_bit_->rbit_[e].ref_ = Core::none;
             }
 
@@ -161,8 +160,8 @@ namespace Gadgetron {
                 // pass down waveform
                 if (wav)
                 {
-                    recon_obj_[e].recon_res_.waveform_ = *wav->getObjectPtr();
-                    this->recon_res_grappa_ai_[e].waveform_ = *wav->getObjectPtr();
+                    recon_obj_[e].recon_res_.waveform_ = this->set_wave_form_to_image_array(*wav->getObjectPtr());
+                    this->recon_res_grappa_ai_[e].waveform_ = this->set_wave_form_to_image_array(*wav->getObjectPtr());
                 }
 
                 recon_obj_[e].recon_res_.acq_headers_ = recon_bit_->rbit_[e].data_.headers_;
@@ -475,7 +474,7 @@ namespace Gadgetron {
         this->compute_snr_scaling_factor(recon_bit, effective_acce_factor, snr_scaling_ratio);
         if (effective_acce_factor > 1)
         {
-            // since the grappa in gadgetron is doing signal preserving scaling, to perserve noise level, we need this compensation factor
+            // since the grappa in gadgetron is doing signal preserving scaling, to preserve noise level, we need this compensation factor
             double grappaKernelCompensationFactor = 1.0 / (acceFactorE1_[e] * acceFactorE2_[e]);
             Gadgetron::scal((float)(grappaKernelCompensationFactor * snr_scaling_ratio), complex_im_recon_buf_);
 
