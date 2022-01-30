@@ -88,6 +88,9 @@ public:
     // whether to consider concatenation on repetition
     GADGET_PROPERTY(concatenation_on_repetition, bool, "If multiple concatenation is used, whether to enlarge the repetition limit", false);
 
+    // if set, pick series with this data role to process
+    GADGET_PROPERTY(data_role_series_to_process, std::string, "If set, series with this data role will be processed; others will just pass down", "");
+
 protected:
 
     virtual int process_config(ACE_Message_Block* mb);
@@ -129,6 +132,9 @@ protected:
 
     // buffer sent to next gadget
     ImageBufferType imageSentBuffer_;
+
+    // image waveform
+    std::vector<ISMRMRD::Waveform> wave_form_buffer_;
 
     // number of total dimensions
     size_t num_of_dimensions_;
